@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soil & Soul Farms</title>
+  <meta name="description" content="Soil & Soul Farms — natural farming, farmers collective, and organic produce.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root{
+      --earth:#8B5A2B; --leaf:#2E7D32; --sand:#F4EEDB;
+    }
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
+    .hero{background:linear-gradient(180deg, rgba(46,125,50,0.08), rgba(139,90,43,0.03)), url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=60') center/cover no-repeat; color:#123;}
+    .brand{font-weight:700; color:var(--leaf)}
+    .card-plant{border:0; box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    .farmer-card img{height:160px; object-fit:cover}
+    .badge-earth{background:var(--earth); color:white}
+    footer{background:#0b3416; color:#dff1e0}
+    .cart-panel{max-width:360px}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="https://via.placeholder.com/44x44.png?text=S" alt="logo" class="rounded me-2">
+      <div>
+        <div class="brand">Soil & Soul Farms</div>
+        <small class="text-muted">Natural • Local • Collective</small>
+      </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navmenu">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#farmers">Farmers</a></li>
+        <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
+        <li class="nav-item"><a class="nav-link" href="#visit">Visit</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        <li class="nav-item ms-2">
+          <button class="btn btn-outline-success" data-bs-toggle="offcanvas" data-bs-target="#cartCanvas">Cart <span id="cartCount" class="badge bg-success ms-1">0</span></button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="home" class="hero py-6">
+  <div class="container py-5">
+    <div class="row align-items-center">
+      <div class="col-lg-7 text-dark">
+        <h1 class="display-5 fw-bold">Soil & Soul Farms</h1>
+        <p class="lead">Natural farming, community-driven marketplace, and direct access to local produce. Join the collective, meet our farmers, and buy authentic farm goods.</p>
+        <p>
+          <a class="btn btn-success btn-lg me-2" href="#products">Shop Now</a>
+          <a class="btn btn-outline-dark btn-lg" href="#join">Join as Farmer</a>
+        </p>
+        <div class="mt-4">
+          <small class="text-muted">Free local delivery on orders over ₹1000 within selected regions (configure later).</small>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="card card-plant shadow-sm">
+          <img src="https://images.unsplash.com/photo-1470309864661-68328b2cd0a5?auto=format&fit=crop&w=800&q=60" class="card-img-top" alt="farm">
+          <div class="card-body">
+            <h5 class="card-title">From our soil to your soul</h5>
+            <p class="card-text">Small batch turmeric, seasonal vegetables, seedlings and farm‑processed goods — cultivated with love and traditional methods.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-5">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-6">
+        <h2>About Soil & Soul Farms</h2>
+        <p>We are a collective of natural farmers dedicated to regenerative practices — no chemical pesticides, earth-friendly inputs, and community-first trade. Our mission is to bring honest, traceable produce to consumers while supporting village livelihoods.</p>
+        <ul>
+          <li>Natural farming practices</li>
+          <li>Farmer-centric revenue model</li>
+          <li>Traceable produce and direct-to-customer sales</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <h5>Quick stats</h5>
+        <div class="row">
+          <div class="col-6"><div class="p-3 bg-light rounded text-center"><h3 class="mb-0">24</h3><small>Active Farmers</small></div></div>
+          <div class="col-6"><div class="p-3 bg-light rounded text-center"><h3 class="mb-0">3</h3><small>Years of Natural Farming</small></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FARMERS -->
+<section id="farmers" class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Meet Our Farmers</h2>
+      <div>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#joinModal">Join as Farmer</button>
+      </div>
+    </div>
+    <div class="row" id="farmerGrid">
+      <!-- Farmer cards injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Products</h2>
+      <div class="form-inline">
+        <input id="searchProduct" class="form-control" placeholder="Search product" oninput="renderProducts()">
+      </div>
+    </div>
+    <div class="row g-3" id="productGrid">
+      <!-- Products injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery" class="py-5 bg-white">
+  <div class="container">
+    <h2>Gallery</h2>
+    <div class="row g-3">
+      <div class="col-md-4"><img src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=60" class="img-fluid rounded" alt="g1"></div>
+      <div class="col-md-4"><img src="https://images.unsplash.com/photo-1470309864661-68328b2cd0a5?auto=format&fit=crop&w=800&q=60" class="img-fluid rounded" alt="g2"></div>
+      <div class="col-md-4"><img src="https://images.unsplash.com/photo-1542736667-069246bdbc76?auto=format&fit=crop&w=800&q=60" class="img-fluid rounded" alt="g3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- VISIT -->
+<section id="visit" class="py-5 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-7">
+        <h2>Visit the Farm</h2>
+        <p>We welcome visitors by appointment. Farm tours, workshops on natural farming and seasonal harvest events. Please book in advance.</p>
+        <ul>
+          <li>Location: (Add exact coordinates)</li>
+          <li>Schedule: Weekdays & Weekends by appointment</li>
+        </ul>
+        <p>Book a visit: <a href="#contact">Contact us</a></p>
+      </div>
+      <div class="col-lg-5">
+        <div class="ratio ratio-16x9">
+          <!-- Replace src with your Google Maps embed URL -->
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18" style="border:0;" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="py-5">
+  <div class="container">
+    <h2>Contact</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <p>Email: <a href="mailto:hello@soilandsoulfarms.com">hello@soilandsoulfarms.com</a></p>
+        <p>Phone / WhatsApp: +91-XXXXXXXXXX</p>
+        <p>Follow us on social media: (Add links)</p>
+      </div>
+      <div class="col-md-6">
+        <!-- Contact form (replace action when you have endpoint) -->
+        <form id="contactForm" onsubmit="handleContact(event)">
+          <div class="mb-3"><input class="form-control" id="cname" placeholder="Your name" required></div>
+          <div class="mb-3"><input class="form-control" id="cemail" type="email" placeholder="Email" required></div>
+          <div class="mb-3"><textarea class="form-control" id="cmessage" rows="3" placeholder="Message"></textarea></div>
+          <button class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-4 mt-5">
+  <div class="container text-center">
+    <p class="mb-1">&copy; <span id="year"></span> Soil & Soul Farms</p>
+    <small>Built with ❤️ • Natural farming • Made in India</small>
+  </div>
+</footer>
+
+<!-- OFFCANVAS CART -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartCanvas">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Your Cart</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body d-flex flex-column">
+    <div id="cartItems" class="mb-3"></div>
+    <div class="mt-auto">
+      <div class="d-flex justify-content-between align-items-center mb-2"><strong>Total</strong><strong id="cartTotal">₹0</strong></div>
+      <div class="d-grid gap-2">
+        <button class="btn btn-success" onclick="checkout()">Checkout</button>
+        <button class="btn btn-outline-secondary" onclick="clearCart()">Clear Cart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- JOIN MODAL -->
+<div class="modal fade" id="joinModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Join Soil & Soul Collective</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="joinForm" onsubmit="handleJoin(event)">
+          <div class="row g-3">
+            <div class="col-md-6"><input id="fName" class="form-control" placeholder="Farmer name" required></div>
+            <div class="col-md-6"><input id="fVillage" class="form-control" placeholder="Village / District" required></div>
+            <div class="col-md-6"><input id="fPhone" class="form-control" placeholder="Phone" required></div>
+            <div class="col-md-6"><input id="fProduce" class="form-control" placeholder="Crops / Produce" required></div>
+            <div class="col-12"><textarea id="fStory" class="form-control" rows="3" placeholder="Tell us about your farm"></textarea></div>
+            <div class="col-12 text-end"><button class="btn btn-primary">Submit for review</button></div>
+          </div>
+        </form>
+        <small class="text-muted">Note: This demo form posts locally — replace the JS to connect to your backend or a form service like Formspree.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Demo data — replace with your real content or load from JSON
+const products = [
+  {id: 'p1', title: 'Organic Turmeric Powder (250g)', price: 220, img:'https://images.unsplash.com/photo-1506806732259-39c2d0268443?auto=format&fit=crop&w=600&q=60'},
+  {id: 'p2', title: 'Fresh Banana (1 bunch)', price: 60, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=600&q=60'},
+  {id: 'p3', title: 'Sweet Basil Seedlings (pack of 5)', price: 180, img:'https://images.unsplash.com/photo-1524594154909-d3a4b162b8b2?auto=format&fit=crop&w=600&q=60'}
+];
+
+const farmers = [
+  {id:'f1', name:'Radha Devi', village:'Nellore', crops:'Turmeric, Banana', img:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=60', story:'Practice natural farming for 10 years.'},
+  {id:'f2', name:'Gopinath', village:'Kavali', crops:'Vegetables', img:'https://images.unsplash.com/photo-1520975911418-3a1f3b9a3efb?auto=format&fit=crop&w=600&q=60', story:'Small-holder farmer specializing in leafy greens.'}
+];
+
+// Local storage cart functions
+function loadCart(){
+  return JSON.parse(localStorage.getItem('ss_cart')||'[]');
+}
+function saveCart(c){
+  localStorage.setItem('ss_cart', JSON.stringify(c));
+  renderCartCount();
+}
+function addToCart(id){
+  const p = products.find(x=>x.id===id); if(!p) return;
+  const cart = loadCart();
+  const found = cart.find(x=>x.id===id);
+  if(found) found.qty +=1; else cart.push({id:id, qty:1, title:p.title, price:p.price});
+  saveCart(cart);
+  renderCartItems();
+}
+function removeFromCart(id){
+  let cart=loadCart(); cart = cart.filter(x=>x.id!==id); saveCart(cart); renderCartItems();
+}
+function clearCart(){ localStorage.removeItem('ss_cart'); renderCartItems(); }
+function cartTotal(){
+  const cart=loadCart(); return cart.reduce((s,i)=>s+i.qty*i.price,0);
+}
+
+function renderCartCount(){document.getElementById('cartCount').innerText = loadCart().reduce((s,i)=>s+i.qty,0)}
+function renderCartItems(){
+  const container = document.getElementById('cartItems'); container.innerHTML='';
+  const cart=loadCart();
+  if(cart.length===0){ container.innerHTML='<div class="text-center text-muted">Cart is empty</div>'; document.getElementById('cartTotal').innerText='₹0'; return; }
+  cart.forEach(item=>{
+    const el = document.createElement('div'); el.className='d-flex align-items-center mb-2';
+    el.innerHTML = `<div class="flex-grow-1">${item.title} <small class="text-muted">x${item.qty}</small></div><div>₹${item.qty*item.price}</div><div class="ms-2"><button class="btn btn-sm btn-link text-danger" onclick="removeFromCart('${item.id}')">Remove</button></div>`;
+    container.appendChild(el);
+  })
+  document.getElementById('cartTotal').innerText = '₹'+cartTotal();
+}
+
+function checkout(){
+  const cart=loadCart(); if(cart.length===0){ alert('Cart is empty'); return; }
+  // Build order email (mailto). Replace with real checkout (Razorpay / Stripe) for production.
+  let body = 'Order from Soil & Soul Farms%0A%0A';
+  body += cart.map(i=>`${i.title} x ${i.qty} = ₹${i.qty*i.price}`).join('%0A');
+  body += `%0A%0ATotal: ₹${cartTotal()}%0A%0AName:%0APhone:%0AAddress:%0A`; 
+  const mailto = `mailto:hello@soilandsoulfarms.com?subject=New%20Order&body=${body}`;
+  window.location.href = mailto;
+}
+
+// Render products and farmers
+function renderProducts(){
+  const q = document.getElementById('searchProduct').value.toLowerCase();
+  const grid = document.getElementById('productGrid'); grid.innerHTML='';
+  const list = products.filter(p=>p.title.toLowerCase().includes(q));
+  list.forEach(p=>{
+    const col = document.createElement('div'); col.className='col-md-4';
+    col.innerHTML = `<div class="card card-plant h-100"><img src="${p.img}" class="card-img-top" alt="${p.title}"><div class="card-body d-flex flex-column"><h5 class="card-title">${p.title}</h5><p class="mt-auto d-flex justify-content-between align-items-center"><strong>₹${p.price}</strong><button class="btn btn-sm btn-success" onclick="addToCart('${p.id}')">Add to cart</button></p></div></div>`;
+    grid.appendChild(col);
+  })
+}
+function renderFarmers(){
+  const grid = document.getElementById('farmerGrid'); grid.innerHTML='';
+  farmers.forEach(f=>{
+    const col = document.createElement('div'); col.className='col-md-4';
+    col.innerHTML = `<div class="card farmer-card"><img src="${f.img}" class="card-img-top" alt="${f.name}"><div class="card-body"><h5>${f.name}</h5><p class="mb-1"><small class="text-muted">${f.village}</small></p><p class="mb-1"><strong>${f.crops}</strong></p><p class="text-muted small">${f.story}</p></div></div>`;
+    grid.appendChild(col);
+  })
+}
+
+// Forms
+function handleContact(e){ e.preventDefault(); alert('Thanks — this demo will send the message to your email once you replace the JS with a backend endpoint.'); }
+function handleJoin(e){ e.preventDefault(); const f = {name:document.getElementById('fName').value, village:document.getElementById('fVillage').value, phone:document.getElementById('fPhone').value, produce:document.getElementById('fProduce').value, story:document.getElementById('fStory').value};
+  // For demo: add to farmers list (unapproved). In production send to admin for approval.
+  farmers.push({id:'f'+(farmers.length+1), name:f.name, village:f.village, crops:f.produce, img:'https://images.unsplash.com/photo-1533222744301-1ddda7a8a1f7?auto=format&fit=crop&w=600&q=60', story:f.story});
+  renderFarmers(); var modal = bootstrap.Modal.getInstance(document.getElementById('joinModal')); modal.hide(); alert('Thanks! We received your request and will review it.');
+}
+
+// Init on load
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('year').innerText = new Date().getFullYear();
+  renderProducts(); renderFarmers(); renderCartItems(); renderCartCount();
+});
+</script>
+</body>
+</html>
