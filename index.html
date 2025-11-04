@@ -14,7 +14,7 @@
     .hero{background:linear-gradient(180deg, rgba(46,125,50,0.08), rgba(139,90,43,0.03)), url('gallery/ss05.jpg') center/cover no-repeat; color:#123;}
     .brand{font-weight:700; color:var(--leaf)}
     .card-plant{border:0; box-shadow:0 6px 18px rgba(0,0,0,0.06)}
-    .farmer-card img{height:60px; object-fit:cover}
+    .farm-card img{height:60px; object-fit:cover}
     .badge-earth{background:var(--earth); color:white}
     footer{background:#0b3416; color:#dff1e0}
     .cart-panel{max-width:360px}
@@ -114,7 +114,7 @@
       </div>
     </div>
     <div class="row" id="farmGrid">
-      <!-- Farmer cards injected by JS -->
+      <!-- Farms cards injected by JS -->
     </div>
   </div>
 </section>
@@ -319,7 +319,7 @@ function renderFarms(){
   const grid = document.getElementById('farmGrid'); grid.innerHTML='';
   farms.forEach(f=>{
     const col = document.createElement('div'); col.className='col-md-4';
-    col.innerHTML = `<div class="card farmer-card"><img src="${f.img}" class="card-img-top" alt="${f.name}"><div class="card-body"><h5>${f.name}</h5><p class="mb-1"><small class="text-muted">${f.village}</small></p><p class="mb-1"><strong>${f.crops}</strong></p><p class="text-muted small">${f.story}</p></div></div>`;
+    col.innerHTML = `<div class="card farm-card"><img src="${f.img}" class="card-img-top" alt="${f.name}"><div class="card-body"><h5>${f.name}</h5><p class="mb-1"><small class="text-muted">${f.village}</small></p><p class="mb-1"><strong>${f.crops}</strong></p><p class="text-muted small">${f.story}</p></div></div>`;
     grid.appendChild(col);
   })
 }
@@ -328,7 +328,7 @@ function renderFarms(){
 function handleContact(e){ e.preventDefault(); alert('Thanks — this demo will send the message to your email once you replace the JS with a backend endpoint.'); }
 function handleJoin(e){ e.preventDefault(); const f = {name:document.getElementById('fName').value, village:document.getElementById('fVillage').value, phone:document.getElementById('fPhone').value, produce:document.getElementById('fProduce').value, story:document.getElementById('fStory').value};
   // For demo: add to farmers list (unapproved). In production send to admin for approval.
-  farmers.push({id:'f'+(farmers.length+1), name:f.name, village:f.village, crops:f.produce, img:'https://images.unsplash.com/photo-1533222744301-1ddda7a8a1f7?auto=format&fit=crop&w=600&q=60', story:f.story});
+  farms.push({id:'f'+(farms.length+1), name:f.name, village:f.village, crops:f.produce, img:'https://images.unsplash.com/photo-1533222744301-1ddda7a8a1f7?auto=format&fit=crop&w=600&q=60', story:f.story});
   renderFarms(); var modal = bootstrap.Modal.getInstance(document.getElementById('joinModal')); modal.hide(); alert('Thanks! We received your request and will review it.');
 }
 
