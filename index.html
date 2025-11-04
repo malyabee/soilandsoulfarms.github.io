@@ -329,13 +329,13 @@ function handleContact(e){ e.preventDefault(); alert('Thanks — this demo will 
 function handleJoin(e){ e.preventDefault(); const f = {name:document.getElementById('fName').value, village:document.getElementById('fVillage').value, phone:document.getElementById('fPhone').value, produce:document.getElementById('fProduce').value, story:document.getElementById('fStory').value};
   // For demo: add to farmers list (unapproved). In production send to admin for approval.
   farmers.push({id:'f'+(farmers.length+1), name:f.name, village:f.village, crops:f.produce, img:'https://images.unsplash.com/photo-1533222744301-1ddda7a8a1f7?auto=format&fit=crop&w=600&q=60', story:f.story});
-  renderFarmers(); var modal = bootstrap.Modal.getInstance(document.getElementById('joinModal')); modal.hide(); alert('Thanks! We received your request and will review it.');
+  renderFarms(); var modal = bootstrap.Modal.getInstance(document.getElementById('joinModal')); modal.hide(); alert('Thanks! We received your request and will review it.');
 }
 
 // Init on load
 window.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('year').innerText = new Date().getFullYear();
-  renderProducts(); renderFarmers(); renderCartItems(); renderCartCount();
+  renderProducts(); renderFarms(); renderCartItems(); renderCartCount();
 });
 </script>
 <script>
