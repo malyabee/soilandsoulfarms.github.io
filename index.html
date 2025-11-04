@@ -224,10 +224,11 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Join Soil & Soul Collective</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <form id="joinForm" onsubmit="handleJoin(event)">
+        <form id="joinForm" onsubmit="submitJoinForm(event)">
           <div class="row g-3">
             <div class="col-md-6"><input id="fName" class="form-control" placeholder="Farmer name" required></div>
             <div class="col-md-6"><input id="fVillage" class="form-control" placeholder="Village / District" required></div>
+            <div class="col-md-6"><input id="fEmail" class="form-control"  type="email" placeholder="Email (optional)"> </div>
             <div class="col-md-6"><input id="fPhone" class="form-control" placeholder="Phone" required></div>
             <div class="col-md-6"><input id="fProduce" class="form-control" placeholder="Crops / Produce" required></div>
             <div class="col-12"><textarea id="fStory" class="form-control" rows="3" placeholder="Tell us about your farm"></textarea></div>
@@ -336,5 +337,37 @@ window.addEventListener('DOMContentLoaded', ()=>{
   renderProducts(); renderFarmers(); renderCartItems(); renderCartCount();
 });
 </script>
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbwx_uINGFzkhC5CtTJr99Z0VaXPLncNWe7T4_T9ZsGSRNd4sm21Blc2hbL6UWr2mGQHmg/exec";
+
+function submitJoinForm(e) {
+  e.preventDefault();
+
+  const data = {
+    name: document.getElementById("fName").value,
+    village: document.getElementById("fVillage").value,
+    email: document.getElementById("fEmail").value,
+    phone: document.getElementById("fPhone").value,
+    produce: document.getElementById("fProduce").value,
+    story: document.getElementById("fStory").value,
+    type: "join"
+  };
+
+  fetch(scriptURL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  alert("🌾 Thank you! Your farmer details have been submitted successfully.");
+  e.target.reset();
+
+  // If inside Bootstrap modal, close it:
+  const modalEl = document.getElementById('joinModal');
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  if (modal) modal.hide();
+}
+</script>  
 </body>
 </html>
