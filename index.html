@@ -39,7 +39,7 @@
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
         <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="#farmers">Farmers</a></li>
+        <li class="nav-item"><a class="nav-link" href="#farms">Farms</a></li>
         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
         <li class="nav-item"><a class="nav-link" href="#visit">Visit</a></li>
         <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
@@ -104,16 +104,16 @@
   </div>
 </section>
 
-<!-- FARMERS -->
-<section id="farmers" class="py-5 bg-light">
+<!-- FARMS -->
+<section id="farms" class="py-5 bg-light">
   <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Meet Our Farmers</h2>
+      <h2>Discover Our Farms — Rooted in Nature, Grown with Care</h2>
       <div>
         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#joinModal">Join as Farmer</button>
       </div>
     </div>
-    <div class="row" id="farmerGrid">
+    <div class="row" id="farmGrid">
       <!-- Farmer cards injected by JS -->
     </div>
   </div>
@@ -252,7 +252,7 @@ const products = [
   {id: 'p3', title: 'Sweet Basil Seedlings (pack of 5)', price: 180, img:'https://images.unsplash.com/photo-1524594154909-d3a4b162b8b2?auto=format&fit=crop&w=600&q=60'}
 ];
 
-const farmers = [
+const farms = [
   {id:'f1', name:'Jeevam Farms', village:'Maneguntapadu, Nellore, Andhra Pradesh', crops:'Rice', img:'gallery/Jeevamfarms.png', story:'Jeevam Farms is a natural, sustainable, cow based, planet friendly and family owned.'},
   {id:'f2', name:'HarshaVardan', village:'varigonda', crops:'Rice', img:'https://images.unsplash.com/photo-1520975911418-3a1f3b9a3efb?auto=format&fit=crop&w=600&q=60', story:'Small-holder farmer specializing in leafy greens.'}
 ];
@@ -304,7 +304,7 @@ function checkout(){
   window.location.href = mailto;
 }
 
-// Render products and farmers
+// Render products and farms
 function renderProducts(){
   const q = document.getElementById('searchProduct').value.toLowerCase();
   const grid = document.getElementById('productGrid'); grid.innerHTML='';
@@ -315,9 +315,9 @@ function renderProducts(){
     grid.appendChild(col);
   })
 }
-function renderFarmers(){
-  const grid = document.getElementById('farmerGrid'); grid.innerHTML='';
-  farmers.forEach(f=>{
+function renderFarms(){
+  const grid = document.getElementById('farmGrid'); grid.innerHTML='';
+  farms.forEach(f=>{
     const col = document.createElement('div'); col.className='col-md-4';
     col.innerHTML = `<div class="card farmer-card"><img src="${f.img}" class="card-img-top" alt="${f.name}"><div class="card-body"><h5>${f.name}</h5><p class="mb-1"><small class="text-muted">${f.village}</small></p><p class="mb-1"><strong>${f.crops}</strong></p><p class="text-muted small">${f.story}</p></div></div>`;
     grid.appendChild(col);
