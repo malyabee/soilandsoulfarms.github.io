@@ -262,7 +262,7 @@ const products = [
 const farms = [
   {id:'f1', name:'Vemasa Farms', village:'Nellore,', crops:'Vegetables, Papaya, Banana, Turmeric, Guava, and Seeds', img:'gallery/ssbgfarms03.png', story:'At Vemasa Farms, food isn’t just cultivated — it’s grown in harmony with nature, reflecting the true spirit of sustainability and self-reliance.'},
   {id:'f2', name:'Parna Organic farms', village:'R.Y. Palem, Penchalakona road, Podhalakur mandal, Nellore', crops:'Vegetables, fruits, eggs, cow milk ,jevamurtham ', img:'gallery/ssbgfarms05.png', story:'Parna Organic farms is a natural, sustainable, cow based, planet friendly and family owned. Parna Organic farms produce naturally fresh seasonal vegetables, free-range eggs, and native seeds'},
-  {id:'f3', name:'Jeevam Farms', village:'Maneguntapadu, Nellore, Andhra Pradesh', crops:'Rice, Vegetables, Eggs, and Seeds ', img:'gallery/Jeevamfarms.png', story:'Jeevam Farms is a natural, sustainable, cow based, planet friendly and family owned. Jeevam farms produce naturally grown rice, fresh seasonal vegetables, free-range eggs, and native seeds'},
+  {id:'f3', name:'Jeevam Farms', village:'Maneguntapadu, Nellore, Andhra Pradesh', crops:'Rice, Vegetables, Eggs, and Seeds ', img:'gallery/Jeevamfarms.png', story:'Jeevam Farms is a natural, sustainable, cow based, planet friendly and family owned. Jeevam farms produce naturally grown rice, fresh seasonal vegetables, free-range eggs, and native seeds', link:'JeevamFarms.html' },
   {id:'f4', name:'Nityam Natural Farms', village:'Gudur, Andhra Pradesh', crops:'Lemon, Papaya, Banana, Custard Apple, Bullock’s Heart, Guava, Sapota and snacks based on Natural Farming items', img:'gallery/ssbgfarms04.png', story:'The farm thrives with fresh fruits, grown without chemicals or synthetic inputs. Beyond fresh produce, Nityam Naturals also creates wholesome snacks made from naturally farmed ingredients, celebrating the essence of real, nutritious food.'},
   {id:'f5', name:'Harsha Natural Farms', village:'Varigonda, Nellore', crops:'Desi Rice varieties', img:'gallery/ssbgfarms01.png', story:'Traditional Desi Rice varieties — Bahurupi, Mysore Malliga, Sivan Samba, Krishnavrihi, and Molagolukulu — cultivated with care using natural farming methods.'},
   {id:'f6', name:'Shaja Siddha', village:'BuchiReddyPalem, Nellore', crops:'Papaya, Banana, Turmeric, Guava, Vegetables, Moringa, Rice, Sugarcane, Cassava, and Jackfruit ', img:'gallery/ssbgfarms02.png', story:'Small-holder farmer specializing in leafy greens.'}
@@ -328,12 +328,34 @@ function renderProducts(){
   })
 }
 function renderFarms(){
-  const grid = document.getElementById('farmGrid'); grid.innerHTML='';
-  farms.forEach(f=>{
-    const col = document.createElement('div'); col.className='col-md-4';
-    col.innerHTML = `<div class="card farm-card"><img src="${f.img}" class="card-img-top" alt="${f.name}"><div class="card-body"><h5>${f.name}</h5><p class="mb-1"><small class="text-muted">${f.village}</small></p><p class="mb-1"><strong>${f.crops}</strong></p><p class="text-muted small">${f.story}</p></div></div>`;
+  const grid = document.getElementById('farmGrid');
+  grid.innerHTML = '';
+
+  farms.forEach(f => {
+    const col = document.createElement('div');
+    col.className = 'col-md-4';
+
+    col.innerHTML = `
+      <div class="card farm-card h-100">
+        <img src="${f.img}" class="card-img-top" alt="${f.name}">
+        <div class="card-body d-flex flex-column">
+          <h5>${f.name}</h5>
+          <p class="mb-1"><small class="text-muted">${f.village}</small></p>
+          <p class="mb-2"><strong>${f.crops}</strong></p>
+          <p class="text-muted small">${f.story}</p>
+
+          ${f.link ? `
+            <div class="mt-auto">
+              <a href="${f.link}" class="btn btn-outline-success btn-sm">
+                View Farm →
+              </a>
+            </div>` : ``}
+        </div>
+      </div>
+    `;
+
     grid.appendChild(col);
-  })
+  });
 }
 
 // Forms
