@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Jeevam Farms | Soil & Soul Farms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Jeevam Farms, Nellore – Indigenous rice cultivation using Subhash Palekar Natural Farming methods.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --earth:#8B5A2B;
+      --leaf:#2E7D32;
+      --sand:#F4EEDB;
+    }
+    body{font-family: Inter, system-ui, sans-serif;}
+    .farm-hero{
+      background: linear-gradient(180deg, rgba(46,125,50,0.15), rgba(139,90,43,0.05)),
+                  url('gallery/jeevam-banner.jpg') center/cover no-repeat;
+      color:#123;
+    }
+    .badge-earth{background:var(--earth);}
+  </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="index.html">
+      <img src="gallery/weblogo.png" width="44" height="44" class="rounded me-2">
+      <strong class="text-success">Soil & Soul Farms</strong>
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="farm-hero py-5">
+  <div class="container">
+    <h1 class="fw-bold">Jeevam Farms</h1>
+    <p class="lead">Indigenous Rice • Natural Farming • Seed Conservation</p>
+    <span class="badge badge-earth text-white">Nellore, Andhra Pradesh</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<section class="py-5">
+  <div class="container">
+
+    <h3>About Jeevam Farms</h3>
+    <p>
+      For the past <strong>four years</strong>, Jeevam Farms has been cultivating paddy using
+      <strong>Shri Subhash Palekar’s Natural Farming (SPNF)</strong> method.
+      Our farming relies entirely on <strong>indigenous cow-based inputs</strong>,
+      including cow dung preparations and Panchagavya, following completely
+      chemical-free and regenerative practices.
+    </p>
+
+    <h4 class="mt-4">Preserving Indigenous Rice Varieties</h4>
+    <p>
+      India is home to hundreds of ancient indigenous rice varieties, many of which
+      are now on the verge of extinction. At Jeevam Farms, we consider it our
+      responsibility to preserve these traditional varieties.
+    </p>
+    <ul>
+      <li>Some varieties are grown for <strong>seed conservation</strong></li>
+      <li>Others are cultivated for <strong>nutritious rice consumption</strong></li>
+    </ul>
+
+    <h4 class="mt-4">Available Rice Varieties</h4>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5>Kujipatalia</h5>
+            <p class="mb-1">Fine, white rice grains</p>
+            <ul class="mb-0">
+              <li>20 kg – ₹1800</li>
+              <li>10 kg – ₹900</li>
+              <li>5 kg – ₹450</li>
+            </ul>
+            <small class="text-muted">RTC transport charges extra</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5>Navara</h5>
+            <p class="mb-1">Red, unpolished (raw) rice</p>
+            <ul class="mb-0">
+              <li>5 kg – ₹600</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h4 class="mt-4">Why Indigenous Organic Rice?</h4>
+    <p>
+      Indigenous rice varieties typically have lower yields and require more care,
+      which results in slightly higher prices. However, they offer superior
+      nutrition and play a vital role in protecting soil health and biodiversity.
+    </p>
+
+    <p>
+      Today, soil organic carbon levels in India have dropped from an ideal
+      <strong>2%</strong> to around <strong>0.2%</strong>, leading to a severe
+      decline in micronutrients in food grains. Supporting natural farming is
+      essential to reverse this trend.
+    </p>
+
+    <blockquote class="blockquote border-start ps-3">
+      <p class="mb-0">
+        Supporting organic and natural farming means protecting our soil,
+        our food, and our future.
+      </p>
+    </blockquote>
+
+    <h4 class="mt-4">Learn More</h4>
+    <ul>
+      <li>
+        🎥 <a href="https://youtu.be/7kx1byGEktI?si=Ge0yZ7tADxMfaoGs" target="_blank">
+        Farm story & background video</a>
+      </li>
+      <li>
+        ▶️ <a href="https://youtube.com/@jeevamfarms" target="_blank">
+        Jeevam Farms YouTube Channel</a>
+      </li>
+      <li>
+        📘 <a href="https://www.facebook.com/JeevamFarms/" target="_blank">
+        Facebook Page</a>
+      </li>
+    </ul>
+
+    <h4 class="mt-4">Contact</h4>
+    <p>
+      <strong>Hazarath & Shilpa</strong><br>
+      Jeevam Farms, Nellore<br>
+      📱 WhatsApp: <a href="https://wa.me/916301796899">6301796899</a>
+    </p>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-4 bg-dark text-light">
+  <div class="container text-center">
+    <small>© <span id="year"></span> Soil & Soul Farms • Natural Farming Collective</small>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').innerText = new Date().getFullYear();
+</script>
+
+</body>
+</html>
