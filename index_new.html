@@ -150,7 +150,6 @@
         <h2>Visit the Farm</h2>
         <p>We welcome visitors by appointment. Farm tours, workshops on natural farming and seasonal harvest events. Please book in advance.</p>
         <ul>
-          <li>Location: (Add exact coordinates)</li>
           <li>Schedule: Weekdays & Weekends by appointment</li>
         </ul>
         <p>Book a visit: <a href="#contact">Contact us</a></p>
@@ -169,13 +168,33 @@
 <section id="contact" class="py-5">
   <div class="container">
     <h2>Contact</h2>
-    <p>Email: mailtosoilandsoulfarms@gmail.com</p>
-    <p>WhatsApp: +91-99 1234 1248</p>
+    <div class="row">
+      <div class="col-md-6">
+        <p>Email: <a href="mailto:mailtosoilandsoulfarms@gmail.com">mailtosoilandsoulfarms (at) gmail.com</a></p>
+        <p>Phone / WhatsApp: +91-99 1234 1248</p>
+        <p>Follow us on social media: (Add links)</p>
+      </div>
+      <div class="col-md-6">
+        <!-- Contact form (replace action when you have endpoint) -->
+        <form id="contactForm" onsubmit="handleContact(event)">
+          <div class="mb-3"><input class="form-control" id="cname" placeholder="Your name" required></div>
+          <div class="mb-3"><input class="form-control" id="cemail" type="email" placeholder="Email" required></div>
+          <div class="mb-3"><textarea class="form-control" id="cmessage" rows="3" placeholder="Message"></textarea></div>
+          <button class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
   </div>
 </section>
 
-<footer class="py-4 text-center">
-  <small>© <span id="year"></span> Soil & Soul Farms • Made in India</small>
+
+
+  <!-- FOOTER -->
+<footer class="py-4 mt-5">
+  <div class="container text-center">
+    <p class="mb-1">&copy; <span id="year"></span> Soil & Soul Farms</p>
+    <small>Built with ❤️ • Natural farming • Made in India</small>
+  </div>
 </footer>
 
 <!-- JOIN MODAL -->
