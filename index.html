@@ -283,29 +283,81 @@ function renderFarms(){
   const grid = document.getElementById('farmGrid');
   grid.innerHTML = '';
 
-  farms.forEach(f=>{
+  farms.forEach(f => {
     const col = document.createElement('div');
     col.className = 'col-md-4';
+
     col.innerHTML = `
       <div class="card farm-card h-100">
-        <img src="${f.img}" class="card-img-top">
+        <img src="${f.img}" class="card-img-top" alt="${f.name}">
         <div class="card-body d-flex flex-column">
           <h5>${f.name}</h5>
-          <small class="text-muted">${f.village}</small>
-          <p class="mt-2">${f.crops}</p>
-          ${f.link ? `<a href="${f.link}" class="btn btn-outline-success btn-sm mt-auto">Farm Page →</a>` : ``}
+          <p class="mb-1"><small class="text-muted">${f.village}</small></p>
+          <p class="mb-2"><strong>${f.crops}</strong></p>
+          <p class="text-muted small">${f.story}</p>
+
+          ${f.link ? `
+            <div class="mt-auto">
+              <a href="${f.link}" class="btn btn-outline-success btn-sm">
+                View Farm →
+              </a>
+            </div>` : ``}
         </div>
       </div>
     `;
+
     grid.appendChild(col);
   });
 }
 
+// Forms
+function handleContact(e){ e.preventDefault(); alert('Thanks — this demo will send the message to your email once you replace the JS with a backend endpoint.'); }
+function handleJoin(e){ e.preventDefault(); const f = {name:document.getElementById('fName').value, village:document.getElementById('fVillage').value, phone:document.getElementById('fPhone').value, produce:document.getElementById('fProduce').value, story:document.getElementById('fStory').value};
+  // For demo: add to farmers list (unapproved). In production send to admin for approval.
+  farms.push({id:'f'+(farms.length+1), name:f.name, village:f.village, crops:f.produce, img:'https://images.unsplash.com/photo-1533222744301-1ddda7a8a1f7?auto=format&fit=crop&w=600&q=60', story:f.story});
+  renderFarms(); var modal = bootstrap.Modal.getInstance(document.getElementById('joinModal')); modal.hide(); alert('Thanks! We received your request and will review it.');
+}
+
+// Init on load
 window.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('year').innerText = new Date().getFullYear();
-  renderFarms();
+  renderProducts(); renderFarms(); renderCartItems(); renderCartCount();
 });
 </script>
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbwx_uINGFzkhC5CtTJr99Z0VaXPLncNWe7T4_T9ZsGSRNd4sm21Blc2hbL6UWr2mGQHmg/exec";
+
+function submitJoinForm(e) {
+  e.preventDefault();
+
+  const data = {
+    name: document.getElementById("fName").value,
+    village: document.getElementById("fVillage").value,
+    email: document.getElementById("fEmail").value,
+    phone: document.getElementById("fPhone").value,
+    produce: document.getElementById("fProduce").value,
+    story: document.getElementById("fStory").value,
+    type: "join"
+  };
+
+  fetch(scriptURL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  alert("🌾 Thank you! Your farmer details have been submitted successfully.");
+  e.target.reset();
+
+  // If inside Bootstrap modal, close it:
+  const modalEl = document.getElementById('joinModal');
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  if (modal) modal.hide();
+}
+</script>
+
+
 
 </body>
 </html>
