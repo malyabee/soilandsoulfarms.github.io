@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soil & Soul Farms</title>
+  <meta name="description" content="Soil & Soul Farms — natural farming collective and organic produce.">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --earth:#8B5A2B;
+      --leaf:#2E7D32;
+      --sand:#F4EEDB;
+    }
+    body{
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+    }
+    .hero{
+      background: linear-gradient(180deg, rgba(46,125,50,0.08), rgba(139,90,43,0.03)),
+                  url('gallery/ss05.jpg') center/cover no-repeat;
+    }
+    .brand{ color: var(--leaf); font-weight:700; }
+    .card-plant{ border:0; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+
+    /* FIXED: farm images */
+    .farm-card img{
+      height:180px;
+      object-fit:cover;
+    }
+
+    footer{ background:#0b3416; color:#dff1e0; }
+  </style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="weblogo.png" class="rounded me-2" style="width:70px;height:70px;object-fit:contain;">
+      <div>
+        <h2 class="brand mb-0">Soil & Soul Farms</h2>
+        <small class="text-muted">Natural • Local • Collective</small>
+      </div>
+    </a>
+      <div class="collapse navbar-collapse" id="navmenu">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#farms">Farms</a></li>
+        <!-- HERO <li class="nav-item"><a class="nav-link" href="#products">Products</a></li> -->
+        <li class="nav-item"><a class="nav-link" href="#visit">Visit</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        <li class="nav-item ms-2">
+         <!-- <button class="btn btn-outline-success" data-bs-toggle="offcanvas" data-bs-target="#cartCanvas">Cart <span id="cartCount" class="badge bg-success ms-1">0</span></button> -->
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="home" class="hero py-5">
+  <div class="container py-5">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <h1 class="display-5 fw-bold">Soil & Soul Farms</h1>
+        <p class="lead">
+          Natural farming, community-driven marketplace, and direct access to
+          honest, traceable farm produce.
+        </p>
+        <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#joinModal">Join as Farmer</button>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="card card-plant">
+          <img src="gallery/Termariclogo.png" class="card-img-top">
+          <div class="card-body">
+            <h5>From our soil to your soul</h5>
+            <p class="small text-muted">
+              Naturally grown produce, rooted in tradition and soil health.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-5">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-6">
+        <h2>About Soil & Soul Farms</h2>
+        <p>
+          <b>Soil & Soul Farms</b> is a collective of natural farmers practicing
+          regenerative, cow-based farming without chemicals.
+        </p>
+        <ul>
+          <li>Natural & regenerative farming</li>
+          <li>Farmer-centric revenue model</li>
+          <li>Direct farm-to-consumer connection</li>
+          <li>Community-driven collective marketing</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <h5>Quick Stats</h5>
+        <div class="row">
+          <div class="col-6">
+            <div class="p-3 bg-light rounded text-center">
+              <h3>9</h3>
+              <small>Active Farms</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 bg-light rounded text-center">
+              <h3>73</h3>
+              <small>Years of collective natural farming experience</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FARMS -->
+<section id="farms" class="py-5 bg-light">
+  <div class="container">
+    <h2 class="mb-4">Discover Our Farms</h2>
+    <div class="row" id="farmGrid"></div>
+  </div>
+</section>
+
+<!-- GALLERY (FIXED) -->
+<section id="gallery" class="py-5">
+  <div class="container">
+    <h2>Gallery</h2>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <img src="gallery/ss05.jpg" class="img-fluid rounded" style="height:200px;object-fit:contain;">
+      </div>
+      <div class="col-md-4">
+        <img src="gallery/ss06.jpg" class="img-fluid rounded" style="height:200px;object-fit:contain;">
+      </div>
+      <div class="col-md-4">
+        <img src="gallery/ss07.jpg" class="img-fluid rounded" style="height:200px;object-fit:contain;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VISIT -->
+<section id="visit" class="py-5 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-7">
+        <h2>Visit the Farm</h2>
+        <p>We welcome visitors by appointment. Farm tours, workshops on natural farming and seasonal harvest events. Please book in advance.</p>
+        <ul>
+          <li>Schedule: Weekdays & Weekends by appointment</li>
+        </ul>
+        <p>Book a visit: <a href="#contact">Contact us</a></p>
+      </div>
+      <div class="col-lg-5">
+        <div class="ratio ratio-16x9">
+          <!-- Replace src with your Google Maps embed URL -->
+          <iframe src="https://www.google.com/maps/d/u/1/embed?mid=1PgA8_9Y1Gho5JKuttzWjo4GRRCO45Dw&ehbc=2E312F" width="640" height="480"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>  
+
+<!-- CONTACT -->
+<section id="contact" class="py-5">
+  <div class="container">
+    <h2>Contact</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <p>Email: <a href="mailto:mailtosoilandsoulfarms@gmail.com">mailtosoilandsoulfarms (at) gmail.com</a></p>
+        <p>Phone / WhatsApp: +91-99 1234 1248</p>
+       <!-- <p>Follow us on social media: (Add links)</p> -->
+      </div>
+      <div class="col-md-6">
+        <!-- Contact form (replace action when you have endpoint) -->
+        <form id="contactForm" onsubmit="handleContact(event)">
+          <div class="mb-3"><input class="form-control" id="cname" placeholder="Your name" required></div>
+          <div class="mb-3"><input class="form-control" id="cemail" type="email" placeholder="Email" required></div>
+          <div class="mb-3"><textarea class="form-control" id="cmessage" rows="3" placeholder="Message"></textarea></div>
+          <button class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+  <!-- FOOTER -->
+<footer class="py-4 mt-5">
+  <div class="container text-center">
+    <p class="mb-1">&copy; <span id="year"></span> Soil & Soul Farms</p>
+    <small>Built with ❤️ • Natural farming • Made in India</small>
+  </div>
+</footer>
+
+
+
+<!-- JOIN MODAL -->
+<div class="modal fade" id="joinModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Join Soil & Soul Collective</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="joinForm" onsubmit="submitJoinForm(event)">
+          <div class="row g-3">
+            <div class="col-md-6"><input id="fName" class="form-control" placeholder="Farmer name" required></div>
+            <div class="col-md-6"><input id="fVillage" class="form-control" placeholder="Village / District" required></div>
+            <div class="col-md-6"><input id="fEmail" class="form-control"  type="email" placeholder="Email (optional)"> </div>
+            <div class="col-md-6"><input id="fPhone" class="form-control" placeholder="Phone" required></div>
+            <div class="col-md-6"><input id="fProduce" class="form-control" placeholder="Crops / Produce" required></div>
+            <div class="col-12"><textarea id="fStory" class="form-control" rows="3" placeholder="Tell us about your farm"></textarea></div>
+            <div class="col-12 text-end"><button class="btn btn-primary">Submit for review</button></div>
+          </div>
+        </form>
+        <small class="text-muted">Our team will reach out very soon</small>
+      </div>
+    </div>
+  </div>
+</div>  
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const farms = [
+  {
+    name:'Vemasa Farms',
+    village:'Nellore',
+    crops:'Vegetables, Fruits, Seeds',
+    img:'gallery/ssbgfarms03.png'
+  },
+  {
+    name:'Parna Organic Farms',
+    village:'Nellore',
+    crops:'Vegetables, Eggs, Cow Milk',
+    img:'gallery/ssbgfarms05.png'
+  },
+  {
+    name:'Jeevam Farms',
+    village:'Maneguntapadu, Nellore',
+    crops:'Rice, Vegetables, Eggs, Seeds',
+    img:'gallery/Jeevamfarms.png',
+    link:'JeevamFarms.html'
+  },
+  {
+    name:'Nityam Natural Farms', 
+    village:'Gudur, Andhra Pradesh', 
+    crops:'Lemon, Papaya, Banana, Custard Apple, Bullock’s Heart, Guava, Sapota and snacks based on Natural Farming items', 
+    img:'gallery/ssbgfarms04.png', 
+    story:'The farm thrives with fresh fruits, grown without chemicals or synthetic inputs. Beyond fresh produce, Nityam Naturals also creates wholesome snacks made from naturally farmed ingredients, celebrating the essence of real, nutritious food.'
+  },
+  {
+    name:'Harsha Natural Farms', 
+    village:'Varigonda, Nellore', 
+    crops:'Desi Rice varieties', 
+    img:'gallery/ssbgfarms01.png', 
+    story:'Traditional Desi Rice varieties — Bahurupi, Mysore Malliga, Sivan Samba, Krishnavrihi, and Molagolukulu — cultivated with care using natural farming methods.'
+  },
+  {
+    name:'Shaja Siddha', 
+    village:'BuchiReddyPalem, Nellore', 
+    crops:'Papaya, Banana, Turmeric, Guava, Vegetables, Moringa, Rice, Sugarcane, Cassava, and Jackfruit ', 
+    img:'gallery/ssbgfarms02.png', 
+    story:'Small-holder farmer specializing in leafy greens.'
+  }
+];
+
+function renderFarms(){
+  const grid = document.getElementById('farmGrid');
+  grid.innerHTML = '';
+
+  farms.forEach(f=>{
+    const col = document.createElement('div');
+    col.className = 'col-md-4';
+    col.innerHTML = `
+      <div class="card farm-card h-100">
+        <img src="${f.img}" class="card-img-top">
+        <div class="card-body d-flex flex-column">
+          <h5>${f.name}</h5>
+          <small class="text-muted">${f.village}</small>
+          <p class="mt-2">${f.crops}</p>
+          ${f.link ? `<a href="${f.link}" class="btn btn-outline-success btn-sm mt-auto">Farm Page →</a>` : ``}
+        </div>
+      </div>
+    `;
+    grid.appendChild(col);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('year').innerText = new Date().getFullYear();
+  renderFarms();
+});
+</script>
+
+</body>
+</html>
