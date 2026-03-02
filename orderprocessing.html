@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>Soil & Soul Order Processing</title>
 
+<!-- PapaParse for 100% correct CSV parsing -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <style>
 body { font-family: Arial; margin:20px; }
 h1 { color:#2e7d32; }
@@ -22,7 +25,7 @@ th, td { padding:6px; border:1px solid #ccc; }
 
 <body>
 
-<h1>🌱 Soil & Soul Order Tool 5 </h1>
+<h1>🌱 Soil & Soul Order Tool 6 </h1>
 
 <div class="section">
 <input type="file" id="csvFile" accept=".csv">
@@ -44,41 +47,20 @@ th, td { padding:6px; border:1px solid #ccc; }
 let data = [];
 let items = {};
 
-// ================= CSV LOAD =================
+// ================= CSV LOAD USING PAPAPARSE =================
 document.getElementById('csvFile').addEventListener('change', function(e){
-  const reader = new FileReader();
-  reader.onload = function(e){
-    data = parseCSV(e.target.result);
-    detectItems();
-    calculateTotals();
-  };
-  reader.readAsText(e.target.files[0]);
-});
 
-// ================= PROPER CSV PARSER =================
-function parseCSV(text){
-
-  text = text.replace(/\r/g, "");
-
-  const lines = text.split("\n").filter(l => l.trim());
-
-  const headers = lines[0]
-    .match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
-    .map(h => h.replace(/"/g, '').trim());
-
-  return lines.slice(1).map(line => {
-
-    const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-
-    let obj = {};
-
-    headers.forEach((h, i) => {
-      obj[h] = values[i] ? values[i].replace(/"/g, '').trim() : "";
-    });
-
-    return obj;
+  Papa.parse(e.target.files[0], {
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      data = results.data;
+      detectItems();
+      calculateTotals();
+    }
   });
-}
+
+});
 
 // ================= VALIDATION =================
 function isValidValue(v) {
@@ -98,12 +80,6 @@ function extractItemDetails(header) {
 
   match = header.match(/₹\s*(\d+)\s*\/\s*piece/i);
   if (match) { price = parseFloat(match[1]); unit = "piece"; }
-
-  match = header.match(/(\d+)\s*\/\s*kg/i);
-  if (!price && match) { price = parseFloat(match[1]); unit = "kg"; }
-
-  match = header.match(/(\d+)\s*\/\s*piece/i);
-  if (!price && match) { price = parseFloat(match[1]); unit = "piece"; }
 
   const parts = header.split('–');
   en = parts[0].split('(')[0].split('/')[0].trim();
@@ -154,21 +130,20 @@ function parseQty(raw, unit){
     return isNaN(num) ? 0 : num / 1000;
   }
 
-  return 0; // strict mode
+  return 0;
 }
 
 // ================= CALCULATE SUMMARY =================
 function calculateTotals(){
 
   let summary = {};
-
   Object.keys(items).forEach(k=> summary[k] = 0);
 
   data.forEach(row=>{
     Object.keys(items).forEach(k=>{
       const item = items[k];
       const qty = parseQty(row[k], item.unit);
-      if (!isNaN(qty)) summary[k] += qty;
+      summary[k] += qty;
     });
   });
 
@@ -191,7 +166,6 @@ function calculateTotals(){
   });
 
   html += "</table>";
-
   document.getElementById("summary").innerHTML = html;
 
   generateLabels();
