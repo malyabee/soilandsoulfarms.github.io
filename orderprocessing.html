@@ -65,13 +65,14 @@ function parseCSV(text){
  const lines = text.split('\n').filter(l=>l.trim());
  const headers = lines[0].split(',');
  return lines.slice(1).map(line=>{
-   const values = line.split(',');
+   const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
    let obj = {};
-   headers.forEach((h,i)=> obj[h.trim()] = values[i]?.trim() || '');
+   headers.forEach((h,i)=> obj[h.trim()] = values?.[i]?.replace(/"/g,'').trim() || '');
    return obj;
  });
 }
 
+// detect items
 function detectItems(){
  items = {};
  data.forEach(row=>{
@@ -83,6 +84,7 @@ function detectItems(){
  });
 }
 
+// render price inputs
 function renderPriceInputs(){
  const div = document.getElementById('priceInputs');
  div.innerHTML = '';
@@ -91,21 +93,38 @@ function renderPriceInputs(){
  });
 }
 
+// FIX: convert qty like 500g, 1kg etc into KG number
+function parseQty(qtyStr){
+ if(!qtyStr) return 0;
+ qtyStr = qtyStr.toLowerCase();
+ 
+ if(qtyStr.includes('kg')){
+   return parseFloat(qtyStr);
+ }
+ if(qtyStr.includes('g')){
+   return parseFloat(qtyStr) / 1000;
+ }
+
+ // if only number assume kg
+ return parseFloat(qtyStr) || 0;
+}
+
+// calculate totals + summary
 function calculateTotals(){
  let summary = {};
- let html = "<table><tr><th>Item</th><th>Total Qty</th></tr>";
+ let html = "<table><tr><th>Item</th><th>Total Qty (kg)</th></tr>";
 
  Object.keys(items).forEach(item=> summary[item]=0);
 
  data.forEach(row=>{
    Object.keys(items).forEach(item=>{
-     let qty = parseFloat(row[item]) || 0;
+     let qty = parseQty(row[item]);
      summary[item] += qty;
    });
  });
 
  Object.keys(summary).forEach(item=>{
-   html += `<tr><td>${item}</td><td>${summary[item]}</td></tr>`;
+   html += `<tr><td>${item}</td><td>${summary[item].toFixed(2)}</td></tr>`;
  });
  html += "</table>";
  document.getElementById('summary').innerHTML = html;
@@ -113,19 +132,25 @@ function calculateTotals(){
  generateBills();
 }
 
+// FIX: correct billing logic
 function generateBills(){
  data.forEach(row=>{
    let total = 0;
+
    Object.keys(items).forEach(item=>{
-     let qty = parseFloat(row[item]) || 0;
+     let qtyKg = parseQty(row[item]);
      let price = parseFloat(document.getElementById(`price_${item}`).value) || 0;
-     total += qty * price;
+
+     total += qtyKg * price;
    });
-   row.total = total;
+
+   row.total = Math.round(total);
  });
+
  generateLabels();
 }
 
+// generate labels
 function generateLabels(){
  const container = document.getElementById('labels');
  container.innerHTML='';
