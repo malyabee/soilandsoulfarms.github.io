@@ -17,12 +17,9 @@ h1 { color:#2e7d32; }
   width:260px;
 }
 
-#labels {
-  display:flex;
-  flex-wrap:wrap;
-}
-</style>
+#labels { display:flex; flex-wrap:wrap; }
 
+</style>
 </head>
 
 <body>
@@ -30,16 +27,8 @@ h1 { color:#2e7d32; }
 <h1>🌱 Soil & Soul Order Tool</h1>
 
 <div class="section">
-<select id="community">
-  <option value="">Select Community</option>
-  <option value="sangeeth">Concrete Sangeeth</option>
-</select>
-
-<button onclick="loadData()">Load Orders</button>
-</div>
-
-<div class="section">
-<h3 id="userInfo"></h3>
+<input type="file" id="csvFile" accept=".csv">
+<button onclick="window.print()">Print Labels</button>
 </div>
 
 <div class="section">
@@ -49,64 +38,73 @@ h1 { color:#2e7d32; }
 
 <div class="section">
 <h3>Labels</h3>
-<button onclick="window.print()">Print</button>
 <div id="labels"></div>
 </div>
 
 <script>
 
-const communities = {
-  "sangeeth": {
-    name: "Concrete Sangeeth",
-    url: "https://script.google.com/macros/s/AKfycbzxdgqBKNKekTeXqwJENLSn1nqKglfrnUontla9RAiQgfO5sQJvxSd10abNOvkihqwA/exec"
-  }
-};
-
 let data = [];
 let items = {};
 
-async function loadData() {
+// CSV Load
 
-  const key = document.getElementById("community").value;
-  if (!key) return alert("Select community");
+document.getElementById('csvFile').addEventListener('change', function(e){
+ const reader = new FileReader();
+ reader.onload = function(e){
+   data = parseCSV(e.target.result);
+   detectItems();
+   calculateTotals();
+ };
+ reader.readAsText(e.target.files[0]);
+});
 
-  const community = communities[key];
+// CSV parser
+function parseCSV(text){
+ const lines = text.split('\n').filter(l=>l.trim());
+ const headers = lines[0].split(',');
 
-  const res = await fetch(community.url);
-  const result = await res.json();
-
-  if (result.error) {
-    alert(result.error);
-    return;
-  }
-
-  document.getElementById("userInfo").innerText = "Logged in as: " + result.user;
-
-  data = result.data;
-
-  detectItems();
-  calculateTotals();
+ return lines.slice(1).map(line=>{
+   const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+   let obj = {};
+   headers.forEach((h,i)=> obj[h.trim()] = values?.[i]?.replace(/"/g,'').trim() || '');
+   return obj;
+ });
 }
 
-// 🔥 UPDATED: extract price + type (kg or piece)
+// 🔥 Extract item details (supports ₹130/kg OR ₹130/piece)
 function extractItemDetails(header) {
 
   let price = 0;
-  let unit = "kg"; // default
+  let unit = "kg";
   let en = "";
   let te = "";
 
-  // detect per kg
-  const kgMatch = header.match(/(\d+)\s*\/\s*kg/i);
-  if (kgMatch) {
-    price = parseFloat(kgMatch[1]);
+  // normalize header
+  const h = header.toLowerCase();
+
+  // detect price patterns
+  let match = header.match(/₹\s*(\d+)\s*\/\s*kg/i);
+  if (match) {
+    price = parseFloat(match[1]);
     unit = "kg";
   }
 
-  // detect per piece
-  const pieceMatch = header.match(/(\d+)\s*\/\s*piece/i);
-  if (pieceMatch) {
-    price = parseFloat(pieceMatch[1]);
+  match = header.match(/₹\s*(\d+)\s*\/\s*piece/i);
+  if (match) {
+    price = parseFloat(match[1]);
+    unit = "piece";
+  }
+
+  // fallback (old format without ₹ symbol)
+  match = header.match(/(\d+)\s*\/\s*kg/i);
+  if (!price && match) {
+    price = parseFloat(match[1]);
+    unit = "kg";
+  }
+
+  match = header.match(/(\d+)\s*\/\s*piece/i);
+  if (!price && match) {
+    price = parseFloat(match[1]);
     unit = "piece";
   }
 
@@ -122,127 +120,124 @@ function extractItemDetails(header) {
   return { en, te, price, unit };
 }
 
-function detectItems() {
+// detect items
+function detectItems(){
 
-  items = {};
+ items = {};
 
-  data.forEach(row => {
-    Object.keys(row).forEach(k => {
+ data.forEach(row=>{
+   Object.keys(row).forEach(k=>{
 
-      if (!["Name","Mobile Number","Apartment No/Area / Location","Timestamp","Notes"].includes(k)) {
+     if (!["Name","Mobile Number","Apartment No/Area / Location","Timestamp","Notes"].includes(k)) {
 
-        if (row[k]) {
-          if (!items[k]) items[k] = extractItemDetails(k);
-        }
+       if (row[k]) {
+         if (!items[k]) items[k] = extractItemDetails(k);
+       }
 
-      }
+     }
 
-    });
-  });
+   });
+ });
 }
 
-// 🔥 UPDATED: quantity parser supports kg + g + piece count
-function parseQty(q, unit) {
+// parse qty
+function parseQty(q, unit){
 
-  if (!q) return 0;
+ if (!q) return 0;
 
-  q = q.toLowerCase();
+ q = q.toString().toLowerCase();
 
-  if (unit === "piece") {
-    return parseFloat(q); // direct count
-  }
+ if (unit === "piece") {
+   return parseFloat(q);
+ }
 
-  // kg items
-  if (q.includes("kg")) return parseFloat(q);
-  if (q.includes("g")) return parseFloat(q)/1000;
+ if (q.includes("kg")) return parseFloat(q);
+ if (q.includes("g")) return parseFloat(q)/1000;
 
-  return parseFloat(q) || 0;
+ return parseFloat(q) || 0;
 }
 
-function calculateTotals() {
+// calculate totals
+function calculateTotals(){
 
-  let summary = {};
+ let summary = {};
+ let html = "<table border='1'><tr><th>Item</th><th>Total</th><th>Rate</th></tr>";
 
-  let html = "<table border='1'><tr><th>Item</th><th>Total</th><th>Rate</th></tr>";
+ Object.keys(items).forEach(k=> summary[k]=0);
 
-  Object.keys(items).forEach(k => summary[k] = 0);
+ data.forEach(row=>{
+   Object.keys(items).forEach(k=>{
+     const item = items[k];
+     summary[k] += parseQty(row[k], item.unit);
+   });
+ });
 
-  data.forEach(row => {
-    Object.keys(items).forEach(k => {
-      const item = items[k];
-      summary[k] += parseQty(row[k], item.unit);
-    });
-  });
+ Object.keys(summary).forEach(k=>{
 
-  Object.keys(summary).forEach(k => {
+   const item = items[k];
+   const unitText = item.unit === "piece" ? "pcs" : "kg";
 
-    const item = items[k];
+   html += `<tr>
+     <td>${item.en} / ${item.te}</td>
+     <td>${summary[k].toFixed(2)} ${unitText}</td>
+     <td>₹${item.price}/${item.unit}</td>
+   </tr>`;
+ });
 
-    const unitText = item.unit === "piece" ? "pcs" : "kg";
+ html += "</table>";
 
-    html += `<tr>
-      <td>${item.en} / ${item.te}</td>
-      <td>${summary[k].toFixed(2)} ${unitText}</td>
-      <td>₹${item.price}/${item.unit}</td>
-    </tr>`;
-  });
+ document.getElementById("summary").innerHTML = html;
 
-  html += "</table>";
-
-  document.getElementById("summary").innerHTML = html;
-
-  generateLabels();
+ generateLabels();
 }
 
-function generateLabels() {
+// labels
+function generateLabels(){
 
-  const container = document.getElementById("labels");
-  container.innerHTML = "";
+ const container = document.getElementById("labels");
+ container.innerHTML = "";
 
-  data.forEach(row => {
+ data.forEach(row=>{
 
-    let div = document.createElement("div");
-    div.className = "label";
+   let div = document.createElement("div");
+   div.className = "label";
 
-    let itemsHTML = "";
-    let total = 0;
+   let itemsHTML = "";
+   let total = 0;
 
-    Object.keys(items).forEach(k => {
+   Object.keys(items).forEach(k=>{
 
-      if (row[k]) {
+     if (row[k]) {
 
-        const item = items[k];
-        const qty = parseQty(row[k], item.unit);
+       const item = items[k];
+       const qty = parseQty(row[k], item.unit);
+       const amount = Math.round(qty * item.price);
 
-        const amount = Math.round(qty * item.price);
+       total += amount;
 
-        total += amount;
+       itemsHTML += `
+         <div>
+           ${item.en} ${item.te ? '/ '+item.te : ''}<br>
+           ${row[k]} × ₹${item.price}/${item.unit} = ₹${amount}
+         </div>
+       `;
+     }
 
-        const unitText = item.unit === "piece" ? "pcs" : item.unit;
+   });
 
-        itemsHTML += `
-          <div>
-            ${item.en} / ${item.te}<br>
-            ${row[k]} × ₹${item.price}/${item.unit} = ₹${amount}
-          </div>
-        `;
-      }
+   div.innerHTML = `
+     <b>🌱 Soil & Soul</b><br>
+     ${row["Name"]}<br>
+     ${row["Apartment No/Area / Location"]}<br>
+     📞 ${row["Mobile Number"]}
+     <hr>
+     ${itemsHTML}
+     <hr>
+     <b>Total: ₹${total}</b>
+   `;
 
-    });
-
-    div.innerHTML = `
-      <b>🌱 Soil & Soul</b><br>
-      ${row["Name"]}<br>
-      ${row["Apartment No/Area / Location"]}<br>
-      📞 ${row["Mobile Number"]}
-      <hr>
-      ${itemsHTML}
-      <hr>
-      <b>Total: ₹${total}</b>
-    `;
-
-    container.appendChild(div);
-  });
+   container.appendChild(div);
+ });
 }
 
 </script>
