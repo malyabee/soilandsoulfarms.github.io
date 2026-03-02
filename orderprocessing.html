@@ -54,16 +54,19 @@ document.getElementById('csvFile').addEventListener('change', function(e){
 });
 
 // ---------- CSV PARSER ----------
-function parseCSV(text) {
 
-  // remove CR characters
+<script>
+function parseCSV(text){
+
+  // Remove carriage returns
   text = text.replace(/\r/g, "");
 
   const lines = text.split("\n").filter(l => l.trim());
 
-  // handle quoted CSV properly
-  const headers = lines[0].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
-    .map(h => h.replace(/"/g, '').trim());
+  // Proper CSV parsing for headers
+  const headers = lines[0]
+    .match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
+    .map(h => h.replace(/"/g, "").trim());
 
   return lines.slice(1).map(line => {
 
@@ -72,13 +75,13 @@ function parseCSV(text) {
     let obj = {};
 
     headers.forEach((h, i) => {
-      obj[h] = values[i] ? values[i].replace(/"/g, '').trim() : "";
+      obj[h] = values[i] ? values[i].replace(/"/g, "").trim() : "";
     });
 
     return obj;
   });
 }
-
+</script>
 // ---------- VALIDATION ----------
 function isValidValue(v) {
   return v && v !== "NaN" && v !== "null" && v.trim() !== "";
