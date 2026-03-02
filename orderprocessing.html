@@ -117,6 +117,17 @@ function extractItemDetails(header) {
     te = parts[1].split('(')[0].trim();
   }
 
+  // name cleanup
+  const parts = header.split('–');
+
+  en = parts[0].split('(')[0].split('/')[0].trim();
+
+  if (parts.length > 1) {
+    const teluguPart = parts[1].split('(')[0];
+    const teluguParts = teluguPart.split('/');
+    te = teluguParts[teluguParts.length - 1].trim();
+  }
+
   return { en, te, price, unit };
 }
 
@@ -141,21 +152,40 @@ function detectItems(){
 }
 
 // parse qty
-function parseQty(q, unit){
+// parse quantity with smart handling
+function parseQty(q, unit, itemName) {
 
- if (!q) return 0;
+ if (!q) return { qty: 0, unitType: unit };
 
- q = q.toString().toLowerCase();
+ q = q.toString().toLowerCase().trim();
 
- if (unit === "piece") {
-   return parseFloat(q);
+ // detect explicit units
+ if (q.includes("kg")) {
+   return { qty: parseFloat(q), unitType: "kg" };
  }
 
- if (q.includes("kg")) return parseFloat(q);
- if (q.includes("g")) return parseFloat(q)/1000;
+ if (q.includes("g")) {
+   return { qty: parseFloat(q)/1000, unitType: "kg" };
+ }
 
- return parseFloat(q) || 0;
+ // plain number case
+ let num = parseFloat(q) || 0;
+
+ // 🔥 Smart logic: if header is kg but user entered small integer (1-5)
+ // assume pieces (common for capsicum, brinjal etc.)
+ if (unit === "kg" && Number.isInteger(num) && num > 0 && num <= 5) {
+
+   const pieceItems = ["capsicum","brinjal","tomato","onion"];
+
+   if (pieceItems.some(name => itemName.toLowerCase().includes(name))) {
+     return { qty: num, unitType: "piece" };
+   }
+ }
+
+ // default
+ return { qty: num, unitType: unit };
 }
+
 
 // calculate totals
 function calculateTotals(){
@@ -168,7 +198,8 @@ function calculateTotals(){
  data.forEach(row=>{
    Object.keys(items).forEach(k=>{
      const item = items[k];
-     summary[k] += parseQty(row[k], item.unit);
+     const parsed = parseQty(row[k], item.unit, item.en);
+     summary[k] += parsed.qty;
    });
  });
 
@@ -210,15 +241,28 @@ function generateLabels(){
      if (row[k]) {
 
        const item = items[k];
-       const qty = parseQty(row[k], item.unit);
-       const amount = Math.round(qty * item.price);
+       const parsed = parseQty(row[k], item.unit, item.en);
+       const qty = parsed.qty;
+       const unitType = parsed.unitType;
+       let amount = 0;
+       if (unitType === "piece") {
+         // assume avg 150g per piece if original price is per kg
+         if (item.unit === "kg") {
+           const avgWeight = 0.15; // kg per piece
+           amount = Math.round(qty * avgWeight * item.price);
+         } else {
+           amount = Math.round(qty * item.price);
+         }
+       } else {
+         amount = Math.round(qty * item.price);
+       }
 
        total += amount;
 
        itemsHTML += `
          <div>
            ${item.en} ${item.te ? '/ '+item.te : ''}<br>
-           ${row[k]} × ₹${item.price}/${item.unit} = ₹${amount}
+           ${row[k]} × ₹${item.price}/${unitType} = ₹${amount}
          </div>
        `;
      }
