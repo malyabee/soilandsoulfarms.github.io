@@ -1,34 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Soil & Soul Order Processing</title>
 
 <style>
-body { font-family: Arial; margin:20px; background:#f4f6f5; }
+body { font-family: Arial; margin:20px; }
 h1 { color:#2e7d32; }
-.section { background:#fff; padding:15px; margin-bottom:15px; border-radius:8px; }
-button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5px; cursor:pointer; }
 
-#labels { display:flex; flex-wrap:wrap; gap:10px; }
-.label { width:260px; border:2px solid #2e7d32; padding:10px; border-radius:8px; background:#fff; }
+.section { margin-bottom:20px; }
 
-#summary table { width:100%; border-collapse:collapse; }
-#summary th, #summary td { border:1px solid #ddd; padding:6px; }
+.label {
+  border:2px solid #2e7d32;
+  padding:10px;
+  margin:5px;
+  width:260px;
+}
 
-.item-line { font-size:13px; margin-bottom:4px; }
-.small { font-size:12px; color:#555; }
-
+#labels {
+  display:flex;
+  flex-wrap:wrap;
+}
 </style>
+
 </head>
 
 <body>
+
 <h1>🌱 Soil & Soul Order Tool</h1>
 
 <div class="section">
-<h3>Upload CSV</h3>
-<input type="file" id="csvFile" accept=".csv">
-<div class="small">Auto reads price & Telugu names from column headers</div>
+<select id="community">
+  <option value="">Select Community</option>
+  <option value="sangeeth">Concrete Sangeeth</option>
+</select>
+
+<button onclick="loadData()">Load Orders</button>
+</div>
+
+<div class="section">
+<h3 id="userInfo"></h3>
 </div>
 
 <div class="section">
@@ -38,168 +49,202 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 
 <div class="section">
 <h3>Labels</h3>
-<button onclick="printLabels()">Print Labels</button>
+<button onclick="window.print()">Print</button>
 <div id="labels"></div>
 </div>
 
 <script>
+
+const communities = {
+  "sangeeth": {
+    name: "Concrete Sangeeth",
+    url: "https://script.google.com/macros/s/AKfycbzxdgqBKNKekTeXqwJENLSn1nqKglfrnUontla9RAiQgfO5sQJvxSd10abNOvkihqwA/exec"
+  }
+};
+
 let data = [];
-let items = {}; // { key: { en, te, price } }
+let items = {};
 
-// CSV Load
+async function loadData() {
 
-document.getElementById('csvFile').addEventListener('change', function(e){
- const reader = new FileReader();
- reader.onload = function(e){
-   data = parseCSV(e.target.result);
-   detectItems();
-   calculateTotals();
- };
- reader.readAsText(e.target.files[0]);
-});
+  const key = document.getElementById("community").value;
+  if (!key) return alert("Select community");
 
-function parseCSV(text){
- const lines = text.split('\n').filter(l=>l.trim());
- const headers = lines[0].split(',');
- return lines.slice(1).map(line=>{
-   const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-   let obj = {};
-   headers.forEach((h,i)=> obj[h.trim()] = values?.[i]?.replace(/"/g,'').trim() || '');
-   return obj;
- });
+  const community = communities[key];
+
+  const res = await fetch(community.url);
+  const result = await res.json();
+
+  if (result.error) {
+    alert(result.error);
+    return;
+  }
+
+  document.getElementById("userInfo").innerText = "Logged in as: " + result.user;
+
+  data = result.data;
+
+  detectItems();
+  calculateTotals();
 }
 
-// 🔥 Extract English, Telugu, Price
-function extractItemDetails(header){
- let price = 0;
- let en = '';
- let te = '';
+// 🔥 UPDATED: extract price + type (kg or piece)
+function extractItemDetails(header) {
 
- // price (120/kg)
- const priceMatch = header.match(/(\d+)\s*\/\s*kg/);
- if(priceMatch) price = parseFloat(priceMatch[1]);
+  let price = 0;
+  let unit = "kg"; // default
+  let en = "";
+  let te = "";
 
- // split telugu part
- const parts = header.split('–');
+  // detect per kg
+  const kgMatch = header.match(/(\d+)\s*\/\s*kg/i);
+  if (kgMatch) {
+    price = parseFloat(kgMatch[1]);
+    unit = "kg";
+  }
 
- // English name (before first bracket)
- en = parts[0].split('(')[0].trim();
+  // detect per piece
+  const pieceMatch = header.match(/(\d+)\s*\/\s*piece/i);
+  if (pieceMatch) {
+    price = parseFloat(pieceMatch[1]);
+    unit = "piece";
+  }
 
- // Telugu name (after – and before bracket)
- if(parts.length > 1){
-   te = parts[1].split('(')[0].trim();
- }
+  // extract names
+  const parts = header.split('–');
 
- return { en, te, price };
+  en = parts[0].split('(')[0].trim();
+
+  if (parts.length > 1) {
+    te = parts[1].split('(')[0].trim();
+  }
+
+  return { en, te, price, unit };
 }
 
-// detect items
-function detectItems(){
- items = {};
- data.forEach(row=>{
-   Object.keys(row).forEach(k=>{
-     if(!["Name","Mobile Number","Apartment No/Area / Location","Timestamp","Notes"].includes(k)){
-       if(row[k]){
-         if(!items[k]) items[k] = extractItemDetails(k);
-       }
-     }
-   });
- });
+function detectItems() {
+
+  items = {};
+
+  data.forEach(row => {
+    Object.keys(row).forEach(k => {
+
+      if (!["Name","Mobile Number","Apartment No/Area / Location","Timestamp","Notes"].includes(k)) {
+
+        if (row[k]) {
+          if (!items[k]) items[k] = extractItemDetails(k);
+        }
+
+      }
+
+    });
+  });
 }
 
-// quantity convert
-function parseQty(qtyStr){
- if(!qtyStr) return 0;
- qtyStr = qtyStr.toLowerCase();
+// 🔥 UPDATED: quantity parser supports kg + g + piece count
+function parseQty(q, unit) {
 
- if(qtyStr.includes('kg')) return parseFloat(qtyStr);
- if(qtyStr.includes('g')) return parseFloat(qtyStr)/1000;
+  if (!q) return 0;
 
- return parseFloat(qtyStr) || 0;
+  q = q.toLowerCase();
+
+  if (unit === "piece") {
+    return parseFloat(q); // direct count
+  }
+
+  // kg items
+  if (q.includes("kg")) return parseFloat(q);
+  if (q.includes("g")) return parseFloat(q)/1000;
+
+  return parseFloat(q) || 0;
 }
 
-// summary + billing
-function calculateTotals(){
- let summary = {};
- let html = "<table><tr><th>Item</th><th>Total Qty (kg)</th><th>Rate</th></tr>";
+function calculateTotals() {
 
- Object.keys(items).forEach(k=> summary[k]=0);
+  let summary = {};
 
- data.forEach(row=>{
-   Object.keys(items).forEach(k=>{
-     summary[k] += parseQty(row[k]);
-   });
- });
+  let html = "<table border='1'><tr><th>Item</th><th>Total</th><th>Rate</th></tr>";
 
- Object.keys(summary).forEach(k=>{
-   const item = items[k];
-   html += `<tr><td>${item.en} / ${item.te}</td><td>${summary[k].toFixed(2)}</td><td>₹${item.price}</td></tr>`;
- });
+  Object.keys(items).forEach(k => summary[k] = 0);
 
- html += "</table>";
- document.getElementById('summary').innerHTML = html;
+  data.forEach(row => {
+    Object.keys(items).forEach(k => {
+      const item = items[k];
+      summary[k] += parseQty(row[k], item.unit);
+    });
+  });
 
- generateBills();
+  Object.keys(summary).forEach(k => {
+
+    const item = items[k];
+
+    const unitText = item.unit === "piece" ? "pcs" : "kg";
+
+    html += `<tr>
+      <td>${item.en} / ${item.te}</td>
+      <td>${summary[k].toFixed(2)} ${unitText}</td>
+      <td>₹${item.price}/${item.unit}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+
+  document.getElementById("summary").innerHTML = html;
+
+  generateLabels();
 }
 
-// billing
-function generateBills(){
- data.forEach(row=>{
-   let total = 0;
+function generateLabels() {
 
-   Object.keys(items).forEach(k=>{
-     let qtyKg = parseQty(row[k]);
-     let price = items[k].price || 0;
-     total += qtyKg * price;
-   });
+  const container = document.getElementById("labels");
+  container.innerHTML = "";
 
-   row.total = Math.round(total);
- });
+  data.forEach(row => {
 
- generateLabels();
+    let div = document.createElement("div");
+    div.className = "label";
+
+    let itemsHTML = "";
+    let total = 0;
+
+    Object.keys(items).forEach(k => {
+
+      if (row[k]) {
+
+        const item = items[k];
+        const qty = parseQty(row[k], item.unit);
+
+        const amount = Math.round(qty * item.price);
+
+        total += amount;
+
+        const unitText = item.unit === "piece" ? "pcs" : item.unit;
+
+        itemsHTML += `
+          <div>
+            ${item.en} / ${item.te}<br>
+            ${row[k]} × ₹${item.price}/${item.unit} = ₹${amount}
+          </div>
+        `;
+      }
+
+    });
+
+    div.innerHTML = `
+      <b>🌱 Soil & Soul</b><br>
+      ${row["Name"]}<br>
+      ${row["Apartment No/Area / Location"]}<br>
+      📞 ${row["Mobile Number"]}
+      <hr>
+      ${itemsHTML}
+      <hr>
+      <b>Total: ₹${total}</b>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
-// labels with price per item
-function generateLabels(){
- const container = document.getElementById('labels');
- container.innerHTML='';
-
- data.forEach(row=>{
-   let div = document.createElement('div');
-   div.className='label';
-
-   let itemsHTML='';
-
-   Object.keys(items).forEach(k=>{
-     if(row[k]){
-       const item = items[k];
-       const qtyKg = parseQty(row[k]);
-       const price = item.price;
-       const amount = Math.round(qtyKg * price);
-
-       itemsHTML += `
-         <div class="item-line">
-           ${item.en} ${item.te ? '/ '+item.te : ''}<br>
-           <span class="small">${row[k]} × ₹${price} = ₹${amount}</span>
-         </div>`;
-     }
-   });
-
-   div.innerHTML = `
-   <b>🌱 Soil & Soul</b><br>
-   ${row['Name']}<br>
-   ${row['Apartment No/Area / Location']}<br>
-   📞 ${row['Mobile Number']}<br><hr>
-   ${itemsHTML}
-   <hr>
-   <b>Total: ₹${row.total || 0}</b>
-   `;
-
-   container.appendChild(div);
- });
-}
-
-function printLabels(){ window.print(); }
 </script>
 
 </body>
