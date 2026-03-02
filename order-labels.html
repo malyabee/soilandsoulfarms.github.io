@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Soil & Soul - Order Labels</title>
+
+    <!-- Use same CSS from your website -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        h2 {
+            color: #2e7d32;
+        }
+
+        #controls {
+            margin-bottom: 20px;
+        }
+
+        #labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .label {
+            width: 280px;
+            border: 2px solid #2e7d32;
+            padding: 12px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2e7d32;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 5px;
+        }
+
+        .customer {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .location {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .items {
+            margin-top: 10px;
+        }
+
+        .items li {
+            font-size: 14px;
+        }
+
+        button {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* PRINT */
+        @media print {
+            header, footer, #controls {
+                display: none;
+            }
+
+            body {
+                background: white;
+            }
+
+            .label {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ===== Copy your website HEADER here ===== -->
+
+<header>
+    <h1>🌱 Soil & Soul Farms</h1>
+</header>
+
+<div class="container">
+
+    <h2>Order Label Generator</h2>
+
+    <div id="controls">
+        <input type="file" id="csvFile" accept=".csv">
+        <button onclick="printLabels()">Print Labels</button>
+    </div>
+
+    <div id="labels"></div>
+
+</div>
+
+<!-- ===== Copy your website FOOTER here ===== -->
+
+<footer>
+    <p>© Soil & Soul Farms</p>
+</footer>
+
+<script>
+document.getElementById('csvFile').addEventListener('change', handleFile);
+
+function handleFile(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+        generateLabels(rows);
+    };
+
+    reader.readAsText(file);
+}
+
+/* Better CSV parser (handles commas in values) */
+function parseCSV(text) {
+    const lines = text.split("\n").filter(l => l.trim() !== "");
+    const headers = lines[0].split(",");
+
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+
+        const obj = {};
+
+        headers.forEach((h, j) => {
+            obj[h.trim()] = values && values[j]
+                ? values[j].replace(/"/g, "").trim()
+                : "";
+        });
+
+        data.push(obj);
+    }
+
+    return data;
+}
+
+function generateLabels(data) {
+    const container = document.getElementById("labels");
+    container.innerHTML = "";
+
+    data.forEach(row => {
+        const label = document.createElement("div");
+        label.className = "label";
+
+        const name = row["Name"] || "";
+        const phone = row["Mobile Number"] || "";
+        const location = row["Apartment No/Area / Location"] || "";
+
+        let itemsHTML = "<ul>";
+
+        Object.keys(row).forEach(key => {
+            if (
+                key !== "Timestamp" &&
+                key !== "Name" &&
+                key !== "Mobile Number" &&
+                key !== "Apartment No/Area / Location" &&
+                key !== "Notes"
+            ) {
+                const value = row[key];
+
+                if (value && value !== "NaN") {
+                    const itemName = key.split("–")[0];
+                    itemsHTML += `<li>${itemName} : ${value}</li>`;
+                }
+            }
+        });
+
+        itemsHTML += "</ul>";
+
+        label.innerHTML = `
+            <div class="header">🌱 Soil & Soul</div>
+            <div class="customer">${name}</div>
+            <div class="location">${location}</div>
+            <div>📞 ${phone}</div>
+            <div class="items">${itemsHTML}</div>
+        `;
+
+        container.appendChild(label);
+    });
+}
+
+function printLabels() {
+    window.print();
+}
+</script>
+
+</body>
+</html>
