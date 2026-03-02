@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Soil & Soul Order Processing</title>
+
+<style>
+body { font-family: Arial; margin:20px; background:#f4f6f5; }
+h1 { color:#2e7d32; }
+.section { background:#fff; padding:15px; margin-bottom:15px; border-radius:8px; }
+button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5px; cursor:pointer; }
+
+#labels { display:flex; flex-wrap:wrap; gap:10px; }
+.label { width:260px; border:2px solid #2e7d32; padding:10px; border-radius:8px; background:#fff; }
+
+#summary table { width:100%; border-collapse:collapse; }
+#summary th, #summary td { border:1px solid #ddd; padding:6px; }
+
+</style>
+</head>
+
+<body>
+<h1>🌱 Soil & Soul Order Tool</h1>
+
+<div class="section">
+<h3>Upload CSV</h3>
+<input type="file" id="csvFile" accept=".csv">
+</div>
+
+<div class="section">
+<h3>Price Settings (₹ per kg)</h3>
+<div id="priceInputs"></div>
+<button onclick="calculateTotals()">Calculate Bills</button>
+</div>
+
+<div class="section">
+<h3>Packing Summary</h3>
+<div id="summary"></div>
+</div>
+
+<div class="section">
+<h3>Labels</h3>
+<button onclick="printLabels()">Print Labels</button>
+<div id="labels"></div>
+</div>
+
+<script>
+let data = [];
+let items = {};
+
+// Load CSV
+
+document.getElementById('csvFile').addEventListener('change', function(e){
+ const reader = new FileReader();
+ reader.onload = function(e){
+   data = parseCSV(e.target.result);
+   detectItems();
+   renderPriceInputs();
+   generateLabels();
+ };
+ reader.readAsText(e.target.files[0]);
+});
+
+function parseCSV(text){
+ const lines = text.split('\n').filter(l=>l.trim());
+ const headers = lines[0].split(',');
+ return lines.slice(1).map(line=>{
+   const values = line.split(',');
+   let obj = {};
+   headers.forEach((h,i)=> obj[h.trim()] = values[i]?.trim() || '');
+   return obj;
+ });
+}
+
+function detectItems(){
+ items = {};
+ data.forEach(row=>{
+   Object.keys(row).forEach(k=>{
+     if(!["Name","Mobile Number","Apartment No/Area / Location","Timestamp"].includes(k)){
+       if(row[k]) items[k] = 0;
+     }
+   });
+ });
+}
+
+function renderPriceInputs(){
+ const div = document.getElementById('priceInputs');
+ div.innerHTML = '';
+ Object.keys(items).forEach(item=>{
+   div.innerHTML += `${item}: ₹<input type='number' id='price_${item}' value='50'><br>`;
+ });
+}
+
+function calculateTotals(){
+ let summary = {};
+ let html = "<table><tr><th>Item</th><th>Total Qty</th></tr>";
+
+ Object.keys(items).forEach(item=> summary[item]=0);
+
+ data.forEach(row=>{
+   Object.keys(items).forEach(item=>{
+     let qty = parseFloat(row[item]) || 0;
+     summary[item] += qty;
+   });
+ });
+
+ Object.keys(summary).forEach(item=>{
+   html += `<tr><td>${item}</td><td>${summary[item]}</td></tr>`;
+ });
+ html += "</table>";
+ document.getElementById('summary').innerHTML = html;
+
+ generateBills();
+}
+
+function generateBills(){
+ data.forEach(row=>{
+   let total = 0;
+   Object.keys(items).forEach(item=>{
+     let qty = parseFloat(row[item]) || 0;
+     let price = parseFloat(document.getElementById(`price_${item}`).value) || 0;
+     total += qty * price;
+   });
+   row.total = total;
+ });
+ generateLabels();
+}
+
+function generateLabels(){
+ const container = document.getElementById('labels');
+ container.innerHTML='';
+
+ data.forEach(row=>{
+   let div = document.createElement('div');
+   div.className='label';
+
+   let itemsHTML='';
+   Object.keys(items).forEach(item=>{
+     if(row[item]) itemsHTML += `<div>${item}: ${row[item]}</div>`;
+   });
+
+   div.innerHTML = `
+   <b>🌱 Soil & Soul</b><br>
+   ${row['Name']}<br>
+   ${row['Apartment No/Area / Location']}<br>
+   📞 ${row['Mobile Number']}<br><hr>
+   ${itemsHTML}
+   <hr>
+   <b>Total: ₹${row.total || 0}</b>
+   `;
+
+   container.appendChild(div);
+ });
+}
+
+function printLabels(){ window.print(); }
+</script>
+
+</body>
+</html>
