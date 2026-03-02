@@ -16,6 +16,7 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 #summary table { width:100%; border-collapse:collapse; }
 #summary th, #summary td { border:1px solid #ddd; padding:6px; }
 
+.small { color:#666; font-size:12px; }
 </style>
 </head>
 
@@ -25,12 +26,7 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 <div class="section">
 <h3>Upload CSV</h3>
 <input type="file" id="csvFile" accept=".csv">
-</div>
-
-<div class="section">
-<h3>Price Settings (₹ per kg)</h3>
-<div id="priceInputs"></div>
-<button onclick="calculateTotals()">Calculate Bills</button>
+<div class="small">Price will be auto-read from column names like (120/kg)</div>
 </div>
 
 <div class="section">
@@ -46,7 +42,7 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 
 <script>
 let data = [];
-let items = {};
+let items = {}; // { originalKey: { name, price } }
 
 // Load CSV
 
@@ -55,8 +51,7 @@ document.getElementById('csvFile').addEventListener('change', function(e){
  reader.onload = function(e){
    data = parseCSV(e.target.result);
    detectItems();
-   renderPriceInputs();
-   generateLabels();
+   calculateTotals();
  };
  reader.readAsText(e.target.files[0]);
 });
@@ -72,74 +67,81 @@ function parseCSV(text){
  });
 }
 
-// detect items
+// 🔥 Extract price + clean name
+function extractItemDetails(header){
+ let price = 0;
+
+ // extract price (120/kg)
+ const priceMatch = header.match(/(\d+)\s*\/\s*kg/);
+ if(priceMatch) price = parseFloat(priceMatch[1]);
+
+ // clean name (remove brackets and telugu and extra text)
+ let name = header
+   .split('–')[0]   // remove telugu part
+   .split('(')[0]   // remove bracket text
+   .trim();
+
+ return { name, price };
+}
+
+// detect items + extract price
 function detectItems(){
  items = {};
  data.forEach(row=>{
    Object.keys(row).forEach(k=>{
-     if(!["Name","Mobile Number","Apartment No/Area / Location","Timestamp"].includes(k)){
-       if(row[k]) items[k] = 0;
+     if(!["Name","Mobile Number","Apartment No/Area / Location","Timestamp","Notes"].includes(k)){
+       if(row[k]){
+         if(!items[k]) items[k] = extractItemDetails(k);
+       }
      }
    });
  });
 }
 
-// render price inputs
-function renderPriceInputs(){
- const div = document.getElementById('priceInputs');
- div.innerHTML = '';
- Object.keys(items).forEach(item=>{
-   div.innerHTML += `${item}: ₹<input type='number' id='price_${item}' value='50'><br>`;
- });
-}
-
-// FIX: convert qty like 500g, 1kg etc into KG number
+// convert qty
 function parseQty(qtyStr){
  if(!qtyStr) return 0;
  qtyStr = qtyStr.toLowerCase();
- 
- if(qtyStr.includes('kg')){
-   return parseFloat(qtyStr);
- }
- if(qtyStr.includes('g')){
-   return parseFloat(qtyStr) / 1000;
- }
 
- // if only number assume kg
+ if(qtyStr.includes('kg')) return parseFloat(qtyStr);
+ if(qtyStr.includes('g')) return parseFloat(qtyStr) / 1000;
+
  return parseFloat(qtyStr) || 0;
 }
 
 // calculate totals + summary
 function calculateTotals(){
  let summary = {};
- let html = "<table><tr><th>Item</th><th>Total Qty (kg)</th></tr>";
+ let html = "<table><tr><th>Item</th><th>Total Qty (kg)</th><th>Rate</th></tr>";
 
- Object.keys(items).forEach(item=> summary[item]=0);
+ Object.keys(items).forEach(key=> summary[key]=0);
 
  data.forEach(row=>{
-   Object.keys(items).forEach(item=>{
-     let qty = parseQty(row[item]);
-     summary[item] += qty;
+   Object.keys(items).forEach(key=>{
+     let qty = parseQty(row[key]);
+     summary[key] += qty;
    });
  });
 
- Object.keys(summary).forEach(item=>{
-   html += `<tr><td>${item}</td><td>${summary[item].toFixed(2)}</td></tr>`;
+ Object.keys(summary).forEach(key=>{
+   const item = items[key];
+   html += `<tr><td>${item.name}</td><td>${summary[key].toFixed(2)}</td><td>₹${item.price}</td></tr>`;
  });
+
  html += "</table>";
  document.getElementById('summary').innerHTML = html;
 
  generateBills();
 }
 
-// FIX: correct billing logic
+// billing using extracted price
 function generateBills(){
  data.forEach(row=>{
    let total = 0;
 
-   Object.keys(items).forEach(item=>{
-     let qtyKg = parseQty(row[item]);
-     let price = parseFloat(document.getElementById(`price_${item}`).value) || 0;
+   Object.keys(items).forEach(key=>{
+     let qtyKg = parseQty(row[key]);
+     let price = items[key].price || 0;
 
      total += qtyKg * price;
    });
@@ -160,8 +162,11 @@ function generateLabels(){
    div.className='label';
 
    let itemsHTML='';
-   Object.keys(items).forEach(item=>{
-     if(row[item]) itemsHTML += `<div>${item}: ${row[item]}</div>`;
+   Object.keys(items).forEach(key=>{
+     if(row[key]){
+       const item = items[key];
+       itemsHTML += `<div>${item.name}: ${row[key]}</div>`;
+     }
    });
 
    div.innerHTML = `
