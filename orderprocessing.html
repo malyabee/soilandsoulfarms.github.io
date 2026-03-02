@@ -7,21 +7,17 @@
 <style>
 body { font-family: Arial; margin:20px; }
 h1 { color:#2e7d32; }
-
 .section { margin-bottom:20px; }
-
 .label {
   border:2px solid #2e7d32;
   padding:10px;
   margin:5px;
   width:260px;
 }
-
 #labels { display:flex; flex-wrap:wrap; }
-
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>🌱 Soil & Soul Order Tool</h1>
@@ -46,8 +42,7 @@ h1 { color:#2e7d32; }
 let data = [];
 let items = {};
 
-// CSV Load
-
+// ---------- CSV LOAD ----------
 document.getElementById('csvFile').addEventListener('change', function(e){
  const reader = new FileReader();
  reader.onload = function(e){
@@ -58,7 +53,7 @@ document.getElementById('csvFile').addEventListener('change', function(e){
  reader.readAsText(e.target.files[0]);
 });
 
-// CSV parser
+// ---------- CSV PARSER ----------
 function parseCSV(text){
  const lines = text.split('\n').filter(l=>l.trim());
  const headers = lines[0].split(',');
@@ -71,7 +66,12 @@ function parseCSV(text){
  });
 }
 
-// 🔥 Extract item details (supports ₹130/kg OR ₹130/piece)
+// ---------- VALIDATION ----------
+function isValidValue(v) {
+  return v && v !== "NaN" && v !== "null" && v.trim() !== "";
+}
+
+// ---------- EXTRACT ITEM ----------
 function extractItemDetails(header) {
 
   let price = 0;
@@ -79,43 +79,19 @@ function extractItemDetails(header) {
   let en = "";
   let te = "";
 
-  // normalize header
-  const h = header.toLowerCase();
-
-  // detect price patterns
+  // price detection
   let match = header.match(/₹\s*(\d+)\s*\/\s*kg/i);
-  if (match) {
-    price = parseFloat(match[1]);
-    unit = "kg";
-  }
+  if (match) { price = parseFloat(match[1]); unit = "kg"; }
 
   match = header.match(/₹\s*(\d+)\s*\/\s*piece/i);
-  if (match) {
-    price = parseFloat(match[1]);
-    unit = "piece";
-  }
+  if (match) { price = parseFloat(match[1]); unit = "piece"; }
 
-  // fallback (old format without ₹ symbol)
+  // fallback
   match = header.match(/(\d+)\s*\/\s*kg/i);
-  if (!price && match) {
-    price = parseFloat(match[1]);
-    unit = "kg";
-  }
+  if (!price && match) { price = parseFloat(match[1]); unit = "kg"; }
 
   match = header.match(/(\d+)\s*\/\s*piece/i);
-  if (!price && match) {
-    price = parseFloat(match[1]);
-    unit = "piece";
-  }
-
-  // extract names
-  const parts = header.split('–');
-
-  en = parts[0].split('(')[0].trim();
-
-  if (parts.length > 1) {
-    te = parts[1].split('(')[0].trim();
-  }
+  if (!price && match) { price = parseFloat(match[1]); unit = "piece"; }
 
   // name cleanup
   const parts = header.split('–');
@@ -131,63 +107,40 @@ function extractItemDetails(header) {
   return { en, te, price, unit };
 }
 
-// detect items
+// ---------- DETECT ITEMS ----------
 function detectItems(){
-
  items = {};
 
  data.forEach(row=>{
    Object.keys(row).forEach(k=>{
-
      if (!["Name","Mobile Number","Apartment No/Area / Location","Timestamp","Notes"].includes(k)) {
-
-       if (row[k]) {
+       if (isValidValue(row[k])) {
          if (!items[k]) items[k] = extractItemDetails(k);
        }
-
      }
-
    });
  });
 }
 
-// parse qty
-// parse quantity with smart handling
-function parseQty(q, unit, itemName) {
+// ---------- PARSE QUANTITY ----------
+function parseQty(q, unit){
 
- if (!q) return { qty: 0, unitType: unit };
+ if (!isValidValue(q)) return 0;
 
  q = q.toString().toLowerCase().trim();
 
- // detect explicit units
- if (q.includes("kg")) {
-   return { qty: parseFloat(q), unitType: "kg" };
- }
+ let num = parseFloat(q);
+ if (isNaN(num)) return 0;
 
- if (q.includes("g")) {
-   return { qty: parseFloat(q)/1000, unitType: "kg" };
- }
+ if (unit === "piece") return num;
 
- // plain number case
- let num = parseFloat(q) || 0;
+ if (q.includes("kg")) return num;
+ if (q.includes("g")) return num / 1000;
 
- // 🔥 Smart logic: if header is kg but user entered small integer (1-5)
- // assume pieces (common for capsicum, brinjal etc.)
- if (unit === "kg" && Number.isInteger(num) && num > 0 && num <= 5) {
-
-   const pieceItems = ["capsicum","brinjal","tomato","onion"];
-
-   if (pieceItems.some(name => itemName.toLowerCase().includes(name))) {
-     return { qty: num, unitType: "piece" };
-   }
- }
-
- // default
- return { qty: num, unitType: unit };
+ return num;
 }
 
-
-// calculate totals
+// ---------- CALCULATE TOTALS ----------
 function calculateTotals(){
 
  let summary = {};
@@ -198,8 +151,10 @@ function calculateTotals(){
  data.forEach(row=>{
    Object.keys(items).forEach(k=>{
      const item = items[k];
-     const parsed = parseQty(row[k], item.unit, item.en);
-     summary[k] += parsed.qty;
+     const qty = parseQty(row[k], item.unit);
+     if (!isNaN(qty)) {
+       summary[k] += qty;
+     }
    });
  });
 
@@ -209,7 +164,7 @@ function calculateTotals(){
    const unitText = item.unit === "piece" ? "pcs" : "kg";
 
    html += `<tr>
-     <td>${item.en} / ${item.te}</td>
+     <td>${item.en} ${item.te ? '/ '+item.te : ''}</td>
      <td>${summary[k].toFixed(2)} ${unitText}</td>
      <td>₹${item.price}/${item.unit}</td>
    </tr>`;
@@ -222,7 +177,7 @@ function calculateTotals(){
  generateLabels();
 }
 
-// labels
+// ---------- LABELS ----------
 function generateLabels(){
 
  const container = document.getElementById("labels");
@@ -238,31 +193,21 @@ function generateLabels(){
 
    Object.keys(items).forEach(k=>{
 
-     if (row[k]) {
+     if (isValidValue(row[k])) {
 
        const item = items[k];
-       const parsed = parseQty(row[k], item.unit, item.en);
-       const qty = parsed.qty;
-       const unitType = parsed.unitType;
-       let amount = 0;
-       if (unitType === "piece") {
-         // assume avg 150g per piece if original price is per kg
-         if (item.unit === "kg") {
-           const avgWeight = 0.15; // kg per piece
-           amount = Math.round(qty * avgWeight * item.price);
-         } else {
-           amount = Math.round(qty * item.price);
-         }
-       } else {
-         amount = Math.round(qty * item.price);
-       }
+       const qty = parseQty(row[k], item.unit);
+
+       if (qty === 0) return;
+
+       const amount = Math.round(qty * item.price);
 
        total += amount;
 
        itemsHTML += `
          <div>
            ${item.en} ${item.te ? '/ '+item.te : ''}<br>
-           ${row[k]} × ₹${item.price}/${unitType} = ₹${amount}
+           ${row[k]} × ₹${item.price}/${item.unit} = ₹${amount}
          </div>
        `;
      }
