@@ -25,7 +25,7 @@ th, td { padding:6px; border:1px solid #ccc; }
 
 <body>
 
-<h1>🌱 Soil & Soul Order Tool 6 </h1>
+<h1>🌱 Soil & Soul Order Tool 7 </h1>
 
 <div class="section">
 <input type="file" id="csvFile" accept=".csv">
@@ -147,21 +147,27 @@ function calculateTotals(){
     });
   });
 
-  let html = "<table><tr><th>Item</th><th>Total</th><th>Rate</th></tr>";
+  // Convert to array for sorting
+  let rows = Object.keys(summary).map(k => {
+    return {
+      key: k,
+      item: items[k],
+      qty: summary[k]
+    };
+  }).filter(r => r.qty > 0);
 
-  Object.keys(summary).forEach(k=>{
+  // 🔥 Sort by quantity (highest first)
+  rows.sort((a,b) => b.qty - a.qty);
 
-    const item = items[k];
-    const totalQty = summary[k];
+  let html = "<table id='summaryTable'><tr><th>Item</th><th onclick='toggleSort()' style='cursor:pointer'>Total ⬍</th><th>Rate</th></tr>";
 
-    if (totalQty === 0) return;
-
-    const unitText = item.unit === "piece" ? "pcs" : "kg";
+  rows.forEach(r=>{
+    const unitText = r.item.unit === "piece" ? "pcs" : "kg";
 
     html += `<tr>
-      <td>${item.en} ${item.te ? '/ '+item.te : ''}</td>
-      <td>${totalQty.toFixed(2)} ${unitText}</td>
-      <td>₹${item.price}/${item.unit}</td>
+      <td>${r.item.en} ${r.item.te ? '/ '+r.item.te : ''}</td>
+      <td data-qty='${r.qty}'>${r.qty.toFixed(2)} ${unitText}</td>
+      <td>₹${r.item.price}/${r.item.unit}</td>
     </tr>`;
   });
 
@@ -169,6 +175,23 @@ function calculateTotals(){
   document.getElementById("summary").innerHTML = html;
 
   generateLabels();
+}
+
+// 🔄 Toggle Sort Order
+let sortDesc = true;
+function toggleSort(){
+  const table = document.getElementById("summaryTable");
+  const rows = Array.from(table.rows).slice(1);
+
+  rows.sort((a,b)=>{
+    const qa = parseFloat(a.cells[1].dataset.qty);
+    const qb = parseFloat(b.cells[1].dataset.qty);
+    return sortDesc ? qa - qb : qb - qa;
+  });
+
+  rows.forEach(r=> table.appendChild(r));
+  sortDesc = !sortDesc;
+}
 }
 
 // ================= LABELS =================
