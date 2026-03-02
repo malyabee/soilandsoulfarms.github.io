@@ -16,7 +16,9 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 #summary table { width:100%; border-collapse:collapse; }
 #summary th, #summary td { border:1px solid #ddd; padding:6px; }
 
-.small { color:#666; font-size:12px; }
+.item-line { font-size:13px; margin-bottom:4px; }
+.small { font-size:12px; color:#555; }
+
 </style>
 </head>
 
@@ -26,7 +28,7 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 <div class="section">
 <h3>Upload CSV</h3>
 <input type="file" id="csvFile" accept=".csv">
-<div class="small">Price will be auto-read from column names like (120/kg)</div>
+<div class="small">Auto reads price & Telugu names from column headers</div>
 </div>
 
 <div class="section">
@@ -42,9 +44,9 @@ button { background:#2e7d32; color:#fff; border:none; padding:8px 12px; margin:5
 
 <script>
 let data = [];
-let items = {}; // { originalKey: { name, price } }
+let items = {}; // { key: { en, te, price } }
 
-// Load CSV
+// CSV Load
 
 document.getElementById('csvFile').addEventListener('change', function(e){
  const reader = new FileReader();
@@ -67,24 +69,31 @@ function parseCSV(text){
  });
 }
 
-// 🔥 Extract price + clean name
+// 🔥 Extract English, Telugu, Price
 function extractItemDetails(header){
  let price = 0;
+ let en = '';
+ let te = '';
 
- // extract price (120/kg)
+ // price (120/kg)
  const priceMatch = header.match(/(\d+)\s*\/\s*kg/);
  if(priceMatch) price = parseFloat(priceMatch[1]);
 
- // clean name (remove brackets and telugu and extra text)
- let name = header
-   .split('–')[0]   // remove telugu part
-   .split('(')[0]   // remove bracket text
-   .trim();
+ // split telugu part
+ const parts = header.split('–');
 
- return { name, price };
+ // English name (before first bracket)
+ en = parts[0].split('(')[0].trim();
+
+ // Telugu name (after – and before bracket)
+ if(parts.length > 1){
+   te = parts[1].split('(')[0].trim();
+ }
+
+ return { en, te, price };
 }
 
-// detect items + extract price
+// detect items
 function detectItems(){
  items = {};
  data.forEach(row=>{
@@ -98,34 +107,33 @@ function detectItems(){
  });
 }
 
-// convert qty
+// quantity convert
 function parseQty(qtyStr){
  if(!qtyStr) return 0;
  qtyStr = qtyStr.toLowerCase();
 
  if(qtyStr.includes('kg')) return parseFloat(qtyStr);
- if(qtyStr.includes('g')) return parseFloat(qtyStr) / 1000;
+ if(qtyStr.includes('g')) return parseFloat(qtyStr)/1000;
 
  return parseFloat(qtyStr) || 0;
 }
 
-// calculate totals + summary
+// summary + billing
 function calculateTotals(){
  let summary = {};
  let html = "<table><tr><th>Item</th><th>Total Qty (kg)</th><th>Rate</th></tr>";
 
- Object.keys(items).forEach(key=> summary[key]=0);
+ Object.keys(items).forEach(k=> summary[k]=0);
 
  data.forEach(row=>{
-   Object.keys(items).forEach(key=>{
-     let qty = parseQty(row[key]);
-     summary[key] += qty;
+   Object.keys(items).forEach(k=>{
+     summary[k] += parseQty(row[k]);
    });
  });
 
- Object.keys(summary).forEach(key=>{
-   const item = items[key];
-   html += `<tr><td>${item.name}</td><td>${summary[key].toFixed(2)}</td><td>₹${item.price}</td></tr>`;
+ Object.keys(summary).forEach(k=>{
+   const item = items[k];
+   html += `<tr><td>${item.en} / ${item.te}</td><td>${summary[k].toFixed(2)}</td><td>₹${item.price}</td></tr>`;
  });
 
  html += "</table>";
@@ -134,15 +142,14 @@ function calculateTotals(){
  generateBills();
 }
 
-// billing using extracted price
+// billing
 function generateBills(){
  data.forEach(row=>{
    let total = 0;
 
-   Object.keys(items).forEach(key=>{
-     let qtyKg = parseQty(row[key]);
-     let price = items[key].price || 0;
-
+   Object.keys(items).forEach(k=>{
+     let qtyKg = parseQty(row[k]);
+     let price = items[k].price || 0;
      total += qtyKg * price;
    });
 
@@ -152,7 +159,7 @@ function generateBills(){
  generateLabels();
 }
 
-// generate labels
+// labels with price per item
 function generateLabels(){
  const container = document.getElementById('labels');
  container.innerHTML='';
@@ -162,10 +169,19 @@ function generateLabels(){
    div.className='label';
 
    let itemsHTML='';
-   Object.keys(items).forEach(key=>{
-     if(row[key]){
-       const item = items[key];
-       itemsHTML += `<div>${item.name}: ${row[key]}</div>`;
+
+   Object.keys(items).forEach(k=>{
+     if(row[k]){
+       const item = items[k];
+       const qtyKg = parseQty(row[k]);
+       const price = item.price;
+       const amount = Math.round(qtyKg * price);
+
+       itemsHTML += `
+         <div class="item-line">
+           ${item.en} ${item.te ? '/ '+item.te : ''}<br>
+           <span class="small">${row[k]} × ₹${price} = ₹${amount}</span>
+         </div>`;
      }
    });
 
