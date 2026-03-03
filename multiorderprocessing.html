@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Soil & Soul Order Processing</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1 {
+    color: #2e7d32;
+}
+
+.section {
+    margin-top: 40px;
+}
+
+.summary-box {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.label-box {
+    border: 2px solid #2e7d32;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+hr {
+    margin: 30px 0;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🌱 Soil & Soul Order Tool</h1>
+
+<input type="file" id="csvFiles" accept=".csv" multiple>
+<button onclick="printLabels()">Print Labels</button>
+
+<div class="section">
+    <h2>Combined Packing Summary</h2>
+    <div id="combinedSummary" class="summary-box"></div>
+</div>
+
+<hr>
+
+<div class="section">
+    <h2>Individual Community Summaries</h2>
+    <div id="individualSummaries"></div>
+</div>
+
+<script>
+
+document.getElementById('csvFiles').addEventListener('change', function (event) {
+    const files = event.target.files;
+    if (!files.length) return;
+
+    let combinedData = {};
+    let individualSummaries = [];
+    let filesProcessed = 0;
+
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const text = e.target.result;
+            const rows = text.split('\n').slice(1);
+
+            let individualData = {};
+
+            rows.forEach(row => {
+                const cols = row.split(',');
+                if (cols.length < 3) return;
+
+                const item = cols[0].trim();
+                const qty = parseFloat(cols[1]);
+                const unit = cols[2].trim().toLowerCase();
+
+                if (!item || isNaN(qty)) return;
+
+                const key = item + "|" + unit;
+
+                // Combined
+                if (!combinedData[key]) {
+                    combinedData[key] = { item, qty: 0, unit };
+                }
+                combinedData[key].qty += qty;
+
+                // Individual
+                if (!individualData[key]) {
+                    individualData[key] = { item, qty: 0, unit };
+                }
+                individualData[key].qty += qty;
+            });
+
+            individualSummaries.push({
+                fileName: file.name,
+                data: individualData
+            });
+
+            filesProcessed++;
+
+            if (filesProcessed === files.length) {
+                renderCombinedSummary(combinedData);
+                renderIndividualSummaries(individualSummaries);
+            }
+        };
+
+        reader.readAsText(file);
+    });
+});
+
+
+function renderCombinedSummary(data) {
+
+    let kgItems = [];
+    let pcsItems = [];
+
+    Object.values(data).forEach(entry => {
+        if (entry.unit === "kg") {
+            kgItems.push(entry);
+        } else {
+            pcsItems.push(entry);
+        }
+    });
+
+    kgItems.sort((a, b) => b.qty - a.qty);
+    pcsItems.sort((a, b) => b.qty - a.qty);
+
+    let output = "";
+
+    output += "<h3>KG Items</h3>";
+    kgItems.forEach(i => {
+        output += `${i.item} - ${i.qty.toFixed(2)} kg<br>`;
+    });
+
+    output += "<br><h3>PCS Items</h3>";
+    pcsItems.forEach(i => {
+        output += `${i.item} - ${i.qty.toFixed(0)} pcs<br>`;
+    });
+
+    document.getElementById("combinedSummary").innerHTML = output;
+}
+
+
+function renderIndividualSummaries(summaries) {
+
+    let container = document.getElementById("individualSummaries");
+    container.innerHTML = "";
+
+    summaries.forEach(summary => {
+
+        let kgItems = [];
+        let pcsItems = [];
+
+        Object.values(summary.data).forEach(entry => {
+            if (entry.unit === "kg") {
+                kgItems.push(entry);
+            } else {
+                pcsItems.push(entry);
+            }
+        });
+
+        kgItems.sort((a, b) => b.qty - a.qty);
+        pcsItems.sort((a, b) => b.qty - a.qty);
+
+        let block = `<div class="label-box">`;
+        block += `<h3>${summary.fileName}</h3>`;
+
+        block += "<strong>KG Items</strong><br>";
+        kgItems.forEach(i => {
+            block += `${i.item} - ${i.qty.toFixed(2)} kg<br>`;
+        });
+
+        block += "<br><strong>PCS Items</strong><br>";
+        pcsItems.forEach(i => {
+            block += `${i.item} - ${i.qty.toFixed(0)} pcs<br>`;
+        });
+
+        block += `</div>`;
+
+        container.innerHTML += block;
+    });
+}
+
+
+function printLabels() {
+    window.print();
+}
+
+</script>
+
+</body>
+</html>
