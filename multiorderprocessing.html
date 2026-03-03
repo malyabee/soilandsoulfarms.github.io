@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Soil & Soul Order Processing</title>
+<title>Soil & Soul Order Tool</title>
 
 <style>
 body {
@@ -12,6 +12,12 @@ body {
 
 h1 {
     color: #2e7d32;
+}
+
+button {
+    padding: 6px 12px;
+    margin-left: 10px;
+    cursor: pointer;
 }
 
 .section {
@@ -27,11 +33,11 @@ h1 {
 .label-box {
     border: 2px solid #2e7d32;
     padding: 15px;
-    margin: 15px 0;
+    margin: 20px 0;
 }
 
 hr {
-    margin: 30px 0;
+    margin: 40px 0;
 }
 </style>
 </head>
@@ -41,7 +47,11 @@ hr {
 <h1>🌱 Soil & Soul Order Tool</h1>
 
 <input type="file" id="csvFiles" accept=".csv" multiple>
+<button onclick="addAnotherFile()">Add Another CSV</button>
+<button onclick="processAllCSVs()">Process Orders</button>
 <button onclick="printLabels()">Print Labels</button>
+
+<div id="extraFileInputs"></div>
 
 <div class="section">
     <h2>Combined Packing Summary</h2>
@@ -57,47 +67,112 @@ hr {
 
 <script>
 
-document.getElementById('csvFiles').addEventListener('change', function (event) {
-    const files = event.target.files;
-    if (!files.length) return;
+function addAnotherFile() {
+    const container = document.getElementById("extraFileInputs");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv";
+    input.className = "extraCsv";
+    container.appendChild(document.createElement("br"));
+    container.appendChild(input);
+}
+
+function processAllCSVs() {
+
+    const mainInput = document.getElementById('csvFiles');
+    const extraInputs = document.querySelectorAll('.extraCsv');
+
+    let allFiles = [];
+
+    if (mainInput.files.length > 0) {
+        allFiles = Array.from(mainInput.files);
+    }
+
+    extraInputs.forEach(input => {
+        if (input.files.length > 0) {
+            allFiles.push(input.files[0]);
+        }
+    });
+
+    if (allFiles.length === 0) {
+        alert("Please select at least one CSV file.");
+        return;
+    }
 
     let combinedData = {};
     let individualSummaries = [];
     let filesProcessed = 0;
 
-    Array.from(files).forEach(file => {
+    allFiles.forEach(file => {
+
         const reader = new FileReader();
 
         reader.onload = function (e) {
+
             const text = e.target.result;
-            const rows = text.split('\n').slice(1);
+            const rows = text.split('\n').map(r => r.split(','));
+            const headers = rows[0];
 
             let individualData = {};
 
-            rows.forEach(row => {
-                const cols = row.split(',');
-                if (cols.length < 3) return;
+            for (let i = 1; i < rows.length; i++) {
 
-                const item = cols[0].trim();
-                const qty = parseFloat(cols[1]);
-                const unit = cols[2].trim().toLowerCase();
+                const row = rows[i];
 
-                if (!item || isNaN(qty)) return;
+                headers.forEach((header, index) => {
 
-                const key = item + "|" + unit;
+                    if (
+                        header.includes("Timestamp") ||
+                        header.includes("Name") ||
+                        header.includes("Mobile") ||
+                        header.includes("Location") ||
+                        header.includes("Notes")
+                    ) return;
 
-                // Combined
-                if (!combinedData[key]) {
-                    combinedData[key] = { item, qty: 0, unit };
-                }
-                combinedData[key].qty += qty;
+                    let value = row[index];
+                    if (!value) return;
 
-                // Individual
-                if (!individualData[key]) {
-                    individualData[key] = { item, qty: 0, unit };
-                }
-                individualData[key].qty += qty;
-            });
+                    value = value.trim();
+
+                    let qty = 0;
+                    let unit = "kg";
+
+                    if (value.toLowerCase().includes("g")) {
+                        qty = parseFloat(value.replace("g","")) / 1000;
+                        unit = "kg";
+                    }
+                    else if (value.toLowerCase().includes("kg")) {
+                        qty = parseFloat(value.replace("kg",""));
+                        unit = "kg";
+                    }
+                    else if (!isNaN(value)) {
+                        qty = parseFloat(value);
+                        unit = "pcs";
+                    } else {
+                        return;
+                    }
+
+                    if (isNaN(qty) || qty === 0) return;
+
+                    const cleanItem = header
+                        .replace(/\(.*?\)/g, "")
+                        .replace("–", "")
+                        .replace("—", "")
+                        .trim();
+
+                    const key = cleanItem + "|" + unit;
+
+                    if (!combinedData[key]) {
+                        combinedData[key] = { item: cleanItem, qty: 0, unit };
+                    }
+                    combinedData[key].qty += qty;
+
+                    if (!individualData[key]) {
+                        individualData[key] = { item: cleanItem, qty: 0, unit };
+                    }
+                    individualData[key].qty += qty;
+                });
+            }
 
             individualSummaries.push({
                 fileName: file.name,
@@ -106,7 +181,7 @@ document.getElementById('csvFiles').addEventListener('change', function (event) 
 
             filesProcessed++;
 
-            if (filesProcessed === files.length) {
+            if (filesProcessed === allFiles.length) {
                 renderCombinedSummary(combinedData);
                 renderIndividualSummaries(individualSummaries);
             }
@@ -114,8 +189,7 @@ document.getElementById('csvFiles').addEventListener('change', function (event) 
 
         reader.readAsText(file);
     });
-});
-
+}
 
 function renderCombinedSummary(data) {
 
@@ -123,11 +197,8 @@ function renderCombinedSummary(data) {
     let pcsItems = [];
 
     Object.values(data).forEach(entry => {
-        if (entry.unit === "kg") {
-            kgItems.push(entry);
-        } else {
-            pcsItems.push(entry);
-        }
+        if (entry.unit === "kg") kgItems.push(entry);
+        else pcsItems.push(entry);
     });
 
     kgItems.sort((a, b) => b.qty - a.qty);
@@ -135,19 +206,18 @@ function renderCombinedSummary(data) {
 
     let output = "";
 
-    output += "<h3>KG Items</h3>";
+    output += "<strong>KG Items</strong><br><br>";
     kgItems.forEach(i => {
         output += `${i.item} - ${i.qty.toFixed(2)} kg<br>`;
     });
 
-    output += "<br><h3>PCS Items</h3>";
+    output += "<br><strong>PCS Items</strong><br><br>";
     pcsItems.forEach(i => {
         output += `${i.item} - ${i.qty.toFixed(0)} pcs<br>`;
     });
 
     document.getElementById("combinedSummary").innerHTML = output;
 }
-
 
 function renderIndividualSummaries(summaries) {
 
@@ -160,11 +230,8 @@ function renderIndividualSummaries(summaries) {
         let pcsItems = [];
 
         Object.values(summary.data).forEach(entry => {
-            if (entry.unit === "kg") {
-                kgItems.push(entry);
-            } else {
-                pcsItems.push(entry);
-            }
+            if (entry.unit === "kg") kgItems.push(entry);
+            else pcsItems.push(entry);
         });
 
         kgItems.sort((a, b) => b.qty - a.qty);
@@ -188,7 +255,6 @@ function renderIndividualSummaries(summaries) {
         container.innerHTML += block;
     });
 }
-
 
 function printLabels() {
     window.print();
