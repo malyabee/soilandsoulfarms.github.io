@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Soil & Soul Order Tool</title>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -28,6 +30,14 @@ button {
     border: 1px solid #ccc;
     padding: 15px;
     margin-top: 15px;
+    background: #f9f9f9;
+}
+
+.total-box {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1b5e20;
+    margin-bottom: 20px;
 }
 
 .label-box {
@@ -105,89 +115,90 @@ function processAllCSVs() {
 
     allFiles.forEach(file => {
 
-        const reader = new FileReader();
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
 
-        reader.onload = function (e) {
+                let individualData = {};
 
-            const text = e.target.result;
-            const rows = text.split('\n').map(r => r.split(','));
-            const headers = rows[0];
+                results.data.forEach(row => {
 
-            let individualData = {};
+                    Object.keys(row).forEach(header => {
 
-            for (let i = 1; i < rows.length; i++) {
+                        if (
+                            header.includes("Timestamp") ||
+                            header.includes("Name") ||
+                            header.includes("Mobile") ||
+                            header.includes("Location") ||
+                            header.includes("Notes") ||
+                            header.toLowerCase().includes("termaric") ||
+                            header.toLowerCase().includes("rice")
+                        ) return;
 
-                const row = rows[i];
+                        let value = row[header];
+                        if (!value) return;
 
-                headers.forEach((header, index) => {
+                        value = value.toString().trim();
+                        if (value === "") return;
 
-                    if (
-                        header.includes("Timestamp") ||
-                        header.includes("Name") ||
-                        header.includes("Mobile") ||
-                        header.includes("Location") ||
-                        header.includes("Notes")
-                    ) return;
+                        let qty = 0;
+                        let unit = "kg";
 
-                    let value = row[index];
-                    if (!value) return;
+                        if (value.toLowerCase().includes("g")) {
+                            qty = parseFloat(value.replace("g","")) / 1000;
+                            unit = "kg";
+                        }
+                        else if (value.toLowerCase().includes("kg")) {
+                            qty = parseFloat(value.replace("kg",""));
+                            unit = "kg";
+                        }
+                        else if (!isNaN(value)) {
+                            qty = parseFloat(value);
+                            unit = header.toLowerCase().includes("piece") ? "pcs" : "pcs";
+                        } else {
+                            return;
+                        }
 
-                    value = value.trim();
+                        if (isNaN(qty) || qty <= 0) return;
 
-                    let qty = 0;
-                    let unit = "kg";
+                        const cleanItem = header
+                            .replace(/\(.*?\)/g, "")
+                            .replace(/[–—]/g, "")
+                            .replace(/"/g, "")
+                            .trim();
 
-                    if (value.toLowerCase().includes("g")) {
-                        qty = parseFloat(value.replace("g","")) / 1000;
-                        unit = "kg";
-                    }
-                    else if (value.toLowerCase().includes("kg")) {
-                        qty = parseFloat(value.replace("kg",""));
-                        unit = "kg";
-                    }
-                    else if (!isNaN(value)) {
-                        qty = parseFloat(value);
-                        unit = "pcs";
-                    } else {
-                        return;
-                    }
+                        const key = cleanItem + "|" + unit;
 
-                    if (isNaN(qty) || qty === 0) return;
+                        if (!combinedData[key]) {
+                            combinedData[key] = { item: cleanItem, qty: 0, unit };
+                        }
+                        combinedData[key].qty += qty;
 
-                    const cleanItem = header
-                        .replace(/\(.*?\)/g, "")
-                        .replace("–", "")
-                        .replace("—", "")
-                        .trim();
+                        if (!individualData[key]) {
+                            individualData[key] = { item: cleanItem, qty: 0, unit };
+                        }
+                        individualData[key].qty += qty;
 
-                    const key = cleanItem + "|" + unit;
+                    });
 
-                    if (!combinedData[key]) {
-                        combinedData[key] = { item: cleanItem, qty: 0, unit };
-                    }
-                    combinedData[key].qty += qty;
-
-                    if (!individualData[key]) {
-                        individualData[key] = { item: cleanItem, qty: 0, unit };
-                    }
-                    individualData[key].qty += qty;
                 });
+
+                individualSummaries.push({
+                    fileName: file.name,
+                    data: individualData
+                });
+
+                filesProcessed++;
+
+                if (filesProcessed === allFiles.length) {
+                    renderCombinedSummary(combinedData);
+                    renderIndividualSummaries(individualSummaries);
+                }
+
             }
+        });
 
-            individualSummaries.push({
-                fileName: file.name,
-                data: individualData
-            });
-
-            filesProcessed++;
-
-            if (filesProcessed === allFiles.length) {
-                renderCombinedSummary(combinedData);
-                renderIndividualSummaries(individualSummaries);
-            }
-        };
-
-        reader.readAsText(file);
     });
 }
 
@@ -196,22 +207,41 @@ function renderCombinedSummary(data) {
     let kgItems = [];
     let pcsItems = [];
 
+    let totalKg = 0;
+    let totalPcs = 0;
+
     Object.values(data).forEach(entry => {
-        if (entry.unit === "kg") kgItems.push(entry);
-        else pcsItems.push(entry);
+        if (entry.unit === "kg") {
+            if (entry.qty > 0.01) {
+                kgItems.push(entry);
+                totalKg += entry.qty;
+            }
+        } else {
+            if (entry.qty > 0) {
+                pcsItems.push(entry);
+                totalPcs += entry.qty;
+            }
+        }
     });
 
-    kgItems.sort((a, b) => b.qty - a.qty);
-    pcsItems.sort((a, b) => b.qty - a.qty);
+    kgItems.sort((a,b) => b.qty - a.qty);
+    pcsItems.sort((a,b) => b.qty - a.qty);
 
     let output = "";
 
+    output += `<div class="total-box">
+                Total Combined Weight: ${totalKg.toFixed(2)} kg<br>
+                Total Combined Pieces: ${totalPcs} pcs
+               </div>`;
+
     output += "<strong>KG Items</strong><br><br>";
+
     kgItems.forEach(i => {
         output += `${i.item} - ${i.qty.toFixed(2)} kg<br>`;
     });
 
     output += "<br><strong>PCS Items</strong><br><br>";
+
     pcsItems.forEach(i => {
         output += `${i.item} - ${i.qty.toFixed(0)} pcs<br>`;
     });
@@ -230,12 +260,12 @@ function renderIndividualSummaries(summaries) {
         let pcsItems = [];
 
         Object.values(summary.data).forEach(entry => {
-            if (entry.unit === "kg") kgItems.push(entry);
-            else pcsItems.push(entry);
+            if (entry.unit === "kg" && entry.qty > 0.01) kgItems.push(entry);
+            if (entry.unit === "pcs" && entry.qty > 0) pcsItems.push(entry);
         });
 
-        kgItems.sort((a, b) => b.qty - a.qty);
-        pcsItems.sort((a, b) => b.qty - a.qty);
+        kgItems.sort((a,b) => b.qty - a.qty);
+        pcsItems.sort((a,b) => b.qty - a.qty);
 
         let block = `<div class="label-box">`;
         block += `<h3>${summary.fileName}</h3>`;
