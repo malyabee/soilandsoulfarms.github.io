@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Soil & Soul Order Processing - Fixed</title>
+<title>Soil & Soul Order Processing - Final Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -28,7 +28,7 @@ tr:nth-child(even) { background:#f9f9f9; }
 
 <body>
 
-<h1>🌱 Soil & Soul Order processing Tool 13</h1>
+<h1>🌱 Soil & Soul Order Tool - Production Ready</h1>
 
 <div class="section">
 <input type="file" id="csvFile" accept=".csv">
@@ -73,7 +73,7 @@ function extractItemDetails(header) {
   let en = header;
   let te = "";
 
-  // Match ₹NUMBER/UNIT in any format: (₹45/bunch), ₹90/kg, etc.
+  // Match ₹NUMBER/UNIT
   const priceMatch = header.match(/₹\s*(\d+(?:\.\d+)?)\s*\/\s*([a-z]+)/i);
   if (priceMatch) {
     price = parseFloat(priceMatch[1]);
@@ -83,8 +83,8 @@ function extractItemDetails(header) {
     }
   }
 
-  // Clean English name (remove price and quotes)
-  en = header.replace(/₹.*$/i, '').replace(/[""]/g, '').trim();
+  // Clean English name - REMOVE trailing '(' and price part
+  en = header.replace(/₹.*$/i, '').replace(/[""]/g, '').replace(/\($/, '').trim();
   
   // Telugu name (after '–')
   const dashParts = en.split('–');
@@ -96,28 +96,33 @@ function extractItemDetails(header) {
   return { en, te, price, unit };
 }
 
-// ================= BULLETPROOF QUANTITY PARSER =================
-function parseQty(rawQty) {
+// ================= SPECIAL LEMON QUANTITY PARSER =================
+function parseQty(rawQty, itemKey) {
   if (!rawQty || rawQty === "") return 0;
   
   const raw = rawQty.toString().trim().toLowerCase();
-  
-  // Extract number first
   const numMatch = raw.match(/(\d+(?:\.\d+)?)/);
   if (!numMatch) return 0;
   let num = parseFloat(numMatch[1]);
   
-  // Convert based on unit suffix
+  // SPECIAL RULE: Lemon /నిమ్మకాయ unit 6 pieces  (₹40/unit)
+  // Customer enters 6 → 1 unit, 12 → 2 units (divide by 6)
+  if (itemKey.includes("Lemon") || itemKey.includes("నిమ్మకాయ")) {
+    return Math.floor(num / 6);  // 6→1, 12→2
+  }
+  
+  // g → kg conversion
   if (raw.includes('g') && !raw.includes('kg')) {
     return num / 1000;  // 250g → 0.25 kg
   }
   
+  // kg, bunch, unit, piece
   if (raw.includes('kg') || raw.includes('bunch') || raw.includes('bunches') || 
       raw.includes('unit') || raw.includes('units') || raw.includes('piece')) {
     return num;
   }
   
-  // Plain number = assume kg/pieces
+  // Plain number
   return num;
 }
 
@@ -149,7 +154,7 @@ function calculateTotals(){
 
   data.forEach(row=>{
     Object.keys(items).forEach(k=>{
-      const qty = parseQty(row[k]);
+      const qty = parseQty(row[k], k);  // Pass itemKey for Lemon special rule
       summary[k] += qty;
     });
   });
@@ -210,7 +215,7 @@ function generateLabels(){
 
     Object.keys(items).forEach(k=>{
       const item = items[k];
-      const qty = parseQty(row[k]);
+      const qty = parseQty(row[k], k);  // Lemon special rule
       if (qty === 0) return;
 
       const amount = Math.round(qty * item.price);
@@ -218,7 +223,7 @@ function generateLabels(){
 
       itemsHTML += `
         <div style="margin:2px 0; font-size:14px;">
-          ${item.en}<br>
+          ${item.en}${item.te ? ' – ' + item.te : ''}<br>
           <span style="font-size:12px;">${qty.toFixed(2)} × ₹${item.price}/${item.unit} = ₹${amount}</span>
         </div>
       `;
@@ -245,16 +250,16 @@ function generateLabels(){
 // ================= DEBUG =================
 function debugItems(){
   const debugData = Object.keys(items).map(k => ({
-    header: k.substring(0,40) + '...',
+    header: k.substring(0,30) + '...',
     english: items[k].en.substring(0,20),
     telugu: items[k].te.substring(0,20),
     price: items[k].price,
     unit: items[k].unit,
     sample: data[0][k] || '',
-    total: currentRows.find(r=>r.key===k)?.qty || 0
+    total: currentRows.find(r=>r.key===k)?.qty?.toFixed(2) || 0
   }));
   console.table(debugData);
-  alert("✅ Check Console (F12) - All items detected correctly!");
+  alert("✅ Check Console (F12) - Lemon now shows correct units!");
 }
 
 </script>
