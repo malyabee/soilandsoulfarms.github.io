@@ -82,6 +82,12 @@ function extractItemDetails(header) {
   match = header.match(/₹\s*(\d+)\s*\/\s*piece/i);
   if (match) { price = parseFloat(match[1]); unit = "piece"; }
 
+  match = header.match(/₹\s*(\d+)\s*\/\s*bunch/i);
+  if (match) { price = parseFloat(match[1]); unit = "bunch"; }
+
+  match = header.match(/₹\s*(\d+)\s*\/\s*unit/i);
+  if (match) { price = parseFloat(match[1]); unit = "unit"; }
+
   const parts = header.split('–');
   en = parts[0].split('(')[0].split('/')[0].trim();
 
