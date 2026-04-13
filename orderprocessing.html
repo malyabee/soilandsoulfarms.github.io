@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Soil & Soul Order Processing - Concrete Sangeeth</title>
+<title>Soil & Soul Order Processing - Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -11,36 +11,38 @@ h1 { color:#2e7d32; }
 .section { margin-bottom:20px; }
 .label {
   border:2px solid #2e7d32;
-  padding:10px;
+  padding:12px;
   margin:5px;
-  width:280px;
+  width:300px;
   page-break-inside: avoid;
+  background: #f9f9f9;
 }
 #labels { display:flex; flex-wrap:wrap; }
 table { border-collapse: collapse; width:100%; }
-th, td { padding:6px; border:1px solid #ccc; text-align:left; }
-th { cursor:pointer; background:#f2f2f2; }
-.debug { font-size: 12px; color: #666; }
+th, td { padding:8px; border:1px solid #ccc; text-align:left; }
+th { cursor:pointer; background:#e8f5e8; font-weight:bold; }
+tr:nth-child(even) { background:#f9f9f9; }
+.total-row { font-weight:bold; background:#c8e6c9 !important; }
 </style>
 </head>
 
 <body>
 
-<h1>🌱 Soil & Soul Order Tool  processing tool 12 </h1>
+<h1>🌱 Soil & Soul Order processing Tool 13</h1>
 
 <div class="section">
 <input type="file" id="csvFile" accept=".csv">
-<button onclick="window.print()">Print Labels</button>
-<button onclick="debugItems()">Debug Items</button>
+<button onclick="window.print()">🖨️ Print Labels</button>
+<button onclick="debugItems()">🔍 Debug Items</button>
 </div>
 
 <div class="section">
-<h3>Packing Summary (Click Total to Sort)</h3>
+<h3>📦 Packing Summary (Click Total to Sort)</h3>
 <div id="summary"></div>
 </div>
 
 <div class="section">
-<h3>Individual Order Labels</h3>
+<h3>🏷️ Individual Order Labels (Ready to Print)</h3>
 <div id="labels"></div>
 </div>
 
@@ -64,20 +66,15 @@ document.getElementById('csvFile').addEventListener('change', function(e){
   });
 });
 
-// ================= VALIDATION =================
-function isValidValue(v) {
-  return v && v !== "NaN" && v !== "null" && v.trim() !== "";
-}
-
-// ================= EXTRACT ITEM FROM YOUR CSV HEADERS =================
+// ================= EXTRACT ITEM FROM HEADERS =================
 function extractItemDetails(header) {
   let price = 0;
   let unit = "kg";
-  let en = "";
+  let en = header;
   let te = "";
 
-  // Your CSV headers are like: "Lettuce – (₹45/bunch)", "Bachali –   (₹30/bunch)", "Lemon /నిమ్మకాయ unit 6 pieces  (₹40/unit)"
-  const priceMatch = header.match(/₹(\d+(?:\.\d+)?)\/(\w+)/i);
+  // Match ₹NUMBER/UNIT in any format: (₹45/bunch), ₹90/kg, etc.
+  const priceMatch = header.match(/₹\s*(\d+(?:\.\d+)?)\s*\/\s*([a-z]+)/i);
   if (priceMatch) {
     price = parseFloat(priceMatch[1]);
     const unitLower = priceMatch[2].toLowerCase();
@@ -86,18 +83,42 @@ function extractItemDetails(header) {
     }
   }
 
-  // Extract English name (before '–' or '(')
-  const cleanHeader = header.replace(/\(.*?\)$/, '').trim(); // remove price part
-  const parts = cleanHeader.split('–');
-  en = parts[0].trim();
+  // Clean English name (remove price and quotes)
+  en = header.replace(/₹.*$/i, '').replace(/[""]/g, '').trim();
   
   // Telugu name (after '–')
-  if (parts.length > 1) {
-    const teluguPart = parts[1].trim().split('/')[0].trim();
-    te = teluguPart;
+  const dashParts = en.split('–');
+  if (dashParts.length > 1) {
+    te = dashParts[1].trim();
+    en = dashParts[0].trim();
   }
 
   return { en, te, price, unit };
+}
+
+// ================= BULLETPROOF QUANTITY PARSER =================
+function parseQty(rawQty) {
+  if (!rawQty || rawQty === "") return 0;
+  
+  const raw = rawQty.toString().trim().toLowerCase();
+  
+  // Extract number first
+  const numMatch = raw.match(/(\d+(?:\.\d+)?)/);
+  if (!numMatch) return 0;
+  let num = parseFloat(numMatch[1]);
+  
+  // Convert based on unit suffix
+  if (raw.includes('g') && !raw.includes('kg')) {
+    return num / 1000;  // 250g → 0.25 kg
+  }
+  
+  if (raw.includes('kg') || raw.includes('bunch') || raw.includes('bunches') || 
+      raw.includes('unit') || raw.includes('units') || raw.includes('piece')) {
+    return num;
+  }
+  
+  // Plain number = assume kg/pieces
+  return num;
 }
 
 // ================= DETECT ITEMS =================
@@ -109,7 +130,6 @@ function detectItems(){
         if (isValidValue(row[k])) {
           if (!items[k]) {
             items[k] = extractItemDetails(k);
-            console.log(`Detected: "${k}" →`, items[k]); // DEBUG
           }
         }
       }
@@ -117,27 +137,9 @@ function detectItems(){
   });
 }
 
-// ================= PARSE QTY FROM CELLS =================
-function parseQty(raw) {
-  if (!isValidValue(raw)) return 0;
-  raw = raw.toString().toLowerCase().trim();
-
-  // Handle g → kg conversion
-  if (raw.includes('g')) {
-    const num = parseFloat(raw.replace(/[^0-9.]/g, ''));
-    return num ? num / 1000 : 0;
-  }
-
-  // Handle kg, bunch, unit, piece
-  if (raw.includes('kg') || raw.includes('bunch') || raw.includes('bunches') || 
-      raw.includes('unit') || raw.includes('units') || raw.includes('piece')) {
-    const num = parseFloat(raw.replace(/[^0-9.]/g, ''));
-    return num ? num : 0;
-  }
-
-  // Plain numbers
-  const num = parseFloat(raw.replace(/[^0-9.]/g, ''));
-  return num ? num : 0;
+// ================= VALIDATION =================
+function isValidValue(v) {
+  return v && v !== "NaN" && v !== "null" && v.trim() !== "";
 }
 
 // ================= CALCULATE TOTALS =================
@@ -165,24 +167,29 @@ function calculateTotals(){
   generateLabels();
 }
 
-// ================= RENDER SUMMARY TABLE =================
+// ================= RENDER SUMMARY =================
 function renderSummary(){
-  let html = "<table><tr><th>Item</th><th onclick='toggleSort()' style='cursor:pointer'>Total ⬍</th><th>Rate</th></tr>";
+  let html = "<table><tr><th>Item</th><th onclick='toggleSort()' style='cursor:pointer'>Total</th><th>Rate</th><th>Value</th></tr>";
 
-  const unitMap = {
-    kg: "kg", piece: "pcs", bunch: "bunch", unit: "unit"
-  };
+  let grandTotalValue = 0;
+  const unitMap = { kg: "kg", piece: "pcs", bunch: "bunch", unit: "unit" };
 
   currentRows.forEach(r=>{
     const unitText = unitMap[r.item.unit] || r.item.unit;
+    const itemValue = r.qty * r.item.price;
+    grandTotalValue += itemValue;
+
     html += `<tr>
       <td>${r.item.en}${r.item.te ? ' – ' + r.item.te : ''}</td>
       <td><b>${r.qty.toFixed(2)} ${unitText}</b></td>
       <td>₹${r.item.price}/${r.item.unit}</td>
+      <td>₹${itemValue.toFixed(0)}</td>
     </tr>`;
   });
 
+  html += `<tr class="total-row"><td><b>GRAND TOTAL</b></td><td></td><td></td><td><b>₹${grandTotalValue.toFixed(0)}</b></td></tr>`;
   html += "</table>";
+  
   document.getElementById("summary").innerHTML = html;
 }
 
@@ -192,12 +199,12 @@ function toggleSort(){
   renderSummary();
 }
 
-// ================= GENERATE PRINTABLE LABELS =================
+// ================= GENERATE LABELS =================
 function generateLabels(){
   const container = document.getElementById("labels");
   container.innerHTML = "";
 
-  data.forEach(row=>{
+  data.forEach((row, index)=>{
     let itemsHTML = "";
     let total = 0;
 
@@ -206,13 +213,13 @@ function generateLabels(){
       const qty = parseQty(row[k]);
       if (qty === 0) return;
 
-      const amount = Math.round(qty * item.price * 1000) / 1000; // kg precision
+      const amount = Math.round(qty * item.price);
       total += amount;
 
       itemsHTML += `
-        <div style="margin:2px 0;">
-          ${item.en}${item.te ? ' – ' + item.te : ''}<br>
-          <small>${qty.toFixed(2)} × ₹${item.price}/${item.unit} = ₹${amount.toFixed(0)}</small>
+        <div style="margin:2px 0; font-size:14px;">
+          ${item.en}<br>
+          <span style="font-size:12px;">${qty.toFixed(2)} × ₹${item.price}/${item.unit} = ₹${amount}</span>
         </div>
       `;
     });
@@ -222,27 +229,32 @@ function generateLabels(){
     const div = document.createElement("div");
     div.className = "label";
     div.innerHTML = `
-      <b>🌱 Soil & Soul Farms</b><br>
-      <b>${row["Name"] || "Customer"}</b><br>
-      ${row["Apartment No/Area / Location"] || ""}<br>
-      📞 ${row["Mobile Number"] || ""}<br>
-      <hr style="margin:8px 0;">
-      ${itemsHTML}
-      <hr style="margin:8px 0;">
-      <b style="font-size:18px;">Total: ₹${total.toFixed(0)}</b>
+      <div style="font-size:16px; font-weight:bold; margin-bottom:8px;">🌱 Soil & Soul Farms</div>
+      <div style="font-size:15px; font-weight:bold;">${row["Name"] || `Customer #${index+1}`}</div>
+      <div>${row["Apartment No/Area / Location"] || ""}</div>
+      <div style="color:#2e7d32;">📞 ${row["Mobile Number"] || ""}</div>
+      <hr style="margin:10px 0;">
+      <div style="font-size:13px;">${itemsHTML}</div>
+      <hr style="margin:10px 0;">
+      <div style="font-size:18px; font-weight:bold; color:#2e7d32;">Total: ₹${total}</div>
     `;
     container.appendChild(div);
   });
 }
 
-// ================= DEBUG FUNCTION =================
+// ================= DEBUG =================
 function debugItems(){
-  console.table(Object.keys(items).map(k => ({
-    header: k,
-    ...items[k],
-    sample: data[0][k] || ""
-  })));
-  alert("Check browser Console (F12) for detected items!");
+  const debugData = Object.keys(items).map(k => ({
+    header: k.substring(0,40) + '...',
+    english: items[k].en.substring(0,20),
+    telugu: items[k].te.substring(0,20),
+    price: items[k].price,
+    unit: items[k].unit,
+    sample: data[0][k] || '',
+    total: currentRows.find(r=>r.key===k)?.qty || 0
+  }));
+  console.table(debugData);
+  alert("✅ Check Console (F12) - All items detected correctly!");
 }
 
 </script>
