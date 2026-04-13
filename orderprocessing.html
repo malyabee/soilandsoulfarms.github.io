@@ -26,7 +26,7 @@ th { cursor:pointer; background:#f2f2f2; }
 
 <body>
 
-<h1>🌱 Soil & Soul Order Tool 9</h1>
+<h1>🌱 Soil & Soul Order Tool 10</h1>
 
 <div class="section">
 <input type="file" id="csvFile" accept=".csv">
@@ -128,6 +128,14 @@ function parseQty(raw, unit){
     let num = parseFloat(raw);
     return isNaN(num) ? 0 : num;
   }
+  if (raw.includes("bunch")) {
+    let num = parseFloat(raw);
+    return isNaN(num) ? 0 : num;
+  }
+    if (raw.includes("unit")) {
+    let num = parseFloat(raw);
+    return isNaN(num) ? 0 : num;
+  }
 
   if (raw.includes("g")) {
     let num = parseFloat(raw);
@@ -166,9 +174,15 @@ function renderSummary(){
   currentRows.sort((a,b)=> sortDesc ? b.qty - a.qty : a.qty - b.qty);
 
   let html = "<table><tr><th>Item</th><th onclick='toggleSort()'>Total ⬍</th><th>Rate</th></tr>";
+  const unitMap = {
+     piece: "pcs",
+     bunch: "bunch",
+     unit:  "unit",
+     kg:    "kg"
+  };
 
   currentRows.forEach(r=>{
-    const unitText = r.item.unit === "piece" ? "pcs" : "kg";
+   const unitText = unitMap[r.item.unit] || "kg";
 
     html += `<tr>
       <td>${r.item.en} ${r.item.te ? '/ '+r.item.te : ''}</td>
